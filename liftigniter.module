@@ -1,0 +1,89 @@
+<?php
+/**
+ * @file Lift Igniter, recommendation integration.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function liftigniter_menu() {
+  $items['admin/config/services'] = array(
+    'title' => 'Lift Igniter',
+    'description' => 'Lift Igniter, recommendation integration',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('liftigniter_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'liftigniter.admin.inc',
+  );
+
+  return $items;
+}
+
+
+/**
+ * Implements hook_library().
+ */
+function liftigniter_library() {
+  $libraries = array();
+
+  $libraries['liftigniter'] = array(
+    'title' => 'Lift Igniter JS API',
+    'version' => '1.0.0',
+    'js' => array(
+      libraries_get_path('liftigniter') . '/liftigniter.js' => array(
+        'type' => 'file',
+        'group' => JS_LIBRARY,
+        'every_page' => TRUE,
+      ),
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_block_info().
+ */
+function liftigniter_block_info() {
+  $path = drupal_get_path('module', 'liftigniter');
+
+  $blocks['liftigniter_page'] = array(
+    'info' => t('Lift Igniter'),
+    'cache' => DRUPAL_NO_CACHE,
+    '#markup' => _liftigniter_block_content('page'),
+    '#attached' => array(
+      'css' => array($path . '/lift-igniter.css'),
+      'js' => array(
+        $path . '/lift-igniter.js',
+        array(
+          'data' => array('liftIgniterApiKey' => variable_get('liftigniter_api_key', '')),
+          'type' => 'setting'
+        )
+      ),
+    ),
+  );
+
+  // Add base JS library, use CDN if not present yet.
+  if (drupal_get_library('liftigniter')) {
+    $blocks['liftigniter_page']['#attached']['library'] = array('liftigniter');
+  }
+  else {
+    $blocks['liftigniter_page']['#attached']['js'][] = '//cdn.petametrics.com/p.js';
+  }
+
+  return $blocks;
+}
+
+
+/**
+ * Output block content.
+ *
+ * @param string $delta
+ * @return string
+ */
+function _liftigniter_block_content($delta) {
+  switch($delta) {
+    case 'page':
+      return
+  }
+}

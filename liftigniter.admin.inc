@@ -45,6 +45,7 @@ function liftigniter_settings_form($form_state) {
     '#description' => t('Use waypoints to delay looking up recommendations until scrolled-to.'),
   );
 
+  // @todo Could just piggy back the entity data.
   // $form['liftigniter_datalayer'] = array(
   //   '#type' => 'checkbox',
   //   '#title' => t('Send DataLayer details'),
@@ -59,12 +60,13 @@ function liftigniter_settings_form($form_state) {
     '#description' => t('Number of items displayed in widgets.'),
   );
 
-  $form['liftigniter_request_fields'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Request fields'),
-    '#default_value' => variable_get('request_fields', ''),
-    '#description' => t('Custom field list to request from API. Leave blank for defaults.'),
-  );
+  // @todo Provide admin settings for meta fields returned.
+  // $form['liftigniter_request_fields'] = array(
+  //   '#type' => 'textarea',
+  //   '#title' => t('Request fields'),
+  //   '#default_value' => variable_get('request_fields', ''),
+  //   '#description' => t('Custom field list to request from API. Leave blank for defaults.'),
+  // );
 
   $form['liftigniter_widget_blocks'] = array(
     '#type' => 'checkboxes',

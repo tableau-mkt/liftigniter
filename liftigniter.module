@@ -61,6 +61,7 @@ function liftigniter_library() {
  * Implements hook_preproess_page().
  */
 function liftigniter_preprocess_page(&$variables) {
+  // @todo Could just piggy back the entity data.
   // if (module_exists('datalayer')) {
   //   drupal_add_html_head(array(
   //     '#type' => 'html_tag',

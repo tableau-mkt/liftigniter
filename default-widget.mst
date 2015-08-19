@@ -1,9 +1,8 @@
-<strong>{{ master }}</strong>
-
+<ul>
 {{#items}}
-<div class='recommended_item'>
-  <a class='image-bg' href='{{url}}'
-     style='background-image:url({{thumbnail}})'></a>
-  <a class='headline' href='{{url}}'>{{title}}</a>
-</div>
+  <li class='recommended_item'>
+    <a class='image-bg' href='{{url}}' style='background-image:url({{thumbnail}})'></a>
+    <a class='headline' href='{{url}}'>{{title}}</a>
+  </li>
 {{/items}}
+</ul>

@@ -6,7 +6,7 @@
  *   https://github.com/janl/mustache.js
  */
 
-(function($, $p) {
+(function($) {
   Drupal.behaviors.liftIgniter = {
     attach: function liftIgniter(context, settings) {
 
@@ -18,42 +18,40 @@
       if (context !== document) return;
 
       // Register all widgets for API fetching.
-      for (w in widgets) {
+      for (var i in widgets) {
         $p('register', {
           // @todo Per widget item number setting within block admin.
           max: 5,
-          widget: widgets[w],
-          callback: function(response) {
-            var template = $('script' + prefix + widgets[w])[0].innerHTML;
+          widget: widgets[i],
+          callback: function(responseData) {
+            var template = $('script' + prefix + widgets[i])[0].innerHTML,
+                $element = $('div' + prefix + widgets[i]);
 
-response.master = 'craps';
-console.log(template);
-console.log(response);
-console.log($p('render', "<h1>{{master}}</h1>", {master: 'thing'}));
-
-            $('div' + prefix + widgets[w])[0].innerHTML = $p('render', template, response);
+            $element[0].style.display = 'none';
+            $element[0].innerHTML = $p('render', template, responseData);
+            $element.fadeIn();
           }
         });
+
+    //
+    //  if (typeof Waypoint !== 'undefined') {
+    //    waypoint.push(new Waypoint({
+    //      element: $('#block-liftigniter-' + widgets[i]),
+    //      handler: function(direction) {
+    //        console.log('Waypoint reached. Getting recommendations.');
+
+        $p('fetch');
+
+    //      }
+    //    }));
+    //  }
       }
 
-      // if (typeof Waypoint !== 'undefined') {
-        // waypoint.push(new Waypoint({
-        //   element: $('#block-liftigniter-' + settings.liftIgniter.widgets[w]),
-        //   handler: function(direction) {
-
-// console.log('Waypoint reached. Getting recommendations.');
-
-      $p('fetch');
-
-        //   }
-        // }));
-      // }
-      // else {
-        // Execute the registered widgets just once.
-      //   $p('fetch');
-      // }
+      if (typeof Waypoint === 'undefined') {
+        // Execute all the registered widgets.
+        $p('fetch');
+      }
     },
-
 
     /**
      * Obtain a list of available widgets, for admin.
@@ -68,4 +66,4 @@ console.log($p('render', "<h1>{{master}}</h1>", {master: 'thing'}));
       });
     }
   }
-})(jQuery, $p);
+})(jQuery);

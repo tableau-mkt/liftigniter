@@ -19,12 +19,12 @@ Use front-end [Mustache](https://github.com/janl/mustache.js) templates to contr
 Place somewhere like...
 
 ```
-/sites/all/themes/my-theme/templates/liftigniter-default.mst
+/sites/all/themes/my-theme/templates/default-widget.mst
 ```
 or
 
 ```
-/sites/all/themes/my-theme/liftigniter-my-widget.mst
+/sites/all/themes/my-theme/my-widget.mst
 ```
 
 Or load them from your own location.

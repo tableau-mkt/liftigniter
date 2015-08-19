@@ -61,18 +61,19 @@ function liftigniter_library() {
  * Implements hook_preproess_page().
  */
 function liftigniter_preprocess_page(&$variables) {
-  // @todo Could just piggy back the entity data.
-  // if (module_exists('datalayer')) {
-  //   drupal_add_html_head(array(
-  //     '#type' => 'html_tag',
-  //     '#tag' => 'script',
-  //     '#value' => drupal_json_encode(datalayer_get_page_data()),
-  //     '#attributes' => array(
-  //       'type' => 'application/json',
-  //       'id' => 'liftigniter-metadata',
-  //     )), 'liftigniter_metadata'
-  //   );
-  // }
+  // Just piggy back the entity data.
+  // @todo Offer settings for meta data.
+  if (module_exists('datalayer') && variable_get('liftigniter_datalayer', FALSE)) {
+    drupal_add_html_head(array(
+      '#type' => 'html_tag',
+      '#tag' => 'script',
+      '#value' => drupal_json_encode(datalayer_get_page_data()),
+      '#attributes' => array(
+        'type' => 'application/json',
+        'id' => 'liftigniter-metadata',
+      )), 'liftigniter_metadata'
+    );
+  }
 }
 
 
@@ -127,6 +128,7 @@ function liftigniter_block_view($delta = '') {
     // @todo Per widget item number setting within block admin.
     'max' => variable_get('liftigniter_max_items', 5),
     'apiKey' => variable_get('liftigniter_api_key', ''),
+    'useWaypoints' => variable_get('liftigniter_waypoints', FALSE),
     'widgets' => $widgets,
   ));
 
@@ -151,6 +153,11 @@ function liftigniter_block_view($delta = '') {
   }
   else {
     $block['#attached']['js'][] = '//cdn.petametrics.com/p.js';
+  }
+
+  // Delay fornt-end API requests.
+  if (drupal_get_library('waypoints') && variable_get('liftigniter_waypoints', FALSE)) {
+    $block['#attached']['library'][] = 'waypoints';
   }
 
   return $block;

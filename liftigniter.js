@@ -12,7 +12,7 @@
 
       var prefix = '#li-recommendation-',
           widgets = settings.liftIgniter.widgets,
-          waypoints = [];
+          fetched;
 
       // Ajax protection.
       if (context !== document) return;
@@ -33,23 +33,21 @@
           }
         });
 
-    //
-    //  if (typeof Waypoint !== 'undefined') {
-    //    waypoint.push(new Waypoint({
-    //      element: $('#block-liftigniter-' + widgets[i]),
-    //      handler: function(direction) {
-    //        console.log('Waypoint reached. Getting recommendations.');
-
-        $p('fetch');
-
-    //      }
-    //    }));
-    //  }
-      }
-
-      if (typeof Waypoint === 'undefined') {
-        // Execute all the registered widgets.
-        $p('fetch');
+        // Execute all the registered widgets, possible scroll delay.
+        if (typeof $.waypoints !== 'undefined' && settings.liftIgniter.useWaypoints) {
+          $('#block-liftigniter-' + widgets[i]).waypoint(function() {
+              if (!fetched) {
+                $p('fetch');
+                fetched = true;
+              }
+            }, {
+            offset:'100%',
+            triggerOnce:true
+          });
+        }
+        else {
+          $p('fetch');
+        }
       }
     },
 

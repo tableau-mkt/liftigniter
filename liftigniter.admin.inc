@@ -41,17 +41,22 @@ function liftigniter_settings_form($form_state) {
   $form['liftigniter_waypoints'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use Waypoints'),
-    '#default_value' => variable_get('liftigniter_waypoints', ''),
+    '#default_value' => variable_get('liftigniter_waypoints', FALSE),
     '#description' => t('Use waypoints to delay looking up recommendations until scrolled-to.'),
   );
+  if (!drupal_get_library('waypoints')) {
+    drupal_set_message('Waypoints library not yet available.', 'warning');
+  }
 
-  // @todo Could just piggy back the entity data.
-  // $form['liftigniter_datalayer'] = array(
-  //   '#type' => 'checkbox',
-  //   '#title' => t('Send DataLayer details'),
-  //   '#default_value' => variable_get('liftigniter_waypoints', ''),
-  //   '#description' => t('Send page data from DataLayer to Lift Igniter.'),
-  // );
+  $form['liftigniter_datalayer'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Send DataLayer details'),
+    '#default_value' => variable_get('liftigniter_datalayer', FALSE),
+    '#description' => t('Expose page entity data via DataLayer module to Lift Igniter.'),
+  );
+  if (!module_exists('datalayer')) {
+    drupal_set_message('DataLayer module not yet avilable.', 'warning');
+  }
 
   $form['liftigniter_max_items'] = array(
     '#type' => 'textfield',

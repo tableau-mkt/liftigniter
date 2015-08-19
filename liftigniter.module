@@ -3,16 +3,17 @@
  * @file Lift Igniter, recommendation service integration.
  */
 
-define('LIFTIGNITER_LIST_PREFIX', 'li-recommendation-');
-define('LIFTIGNITER_TPL_PREFIX', 'liftigniter-');
-define('LIFTIGNITER_TPL_EXT', '.mst');
+define('LIFTIGNITER_DEFAULT_WIDGET', 'default-widget');
+define('LIFTIGNITER_LIST_PREFIX',    'li-recommendation-');
+define('LIFTIGNITER_TPL_PREFIX',     'liftigniter-');
+define('LIFTIGNITER_TPL_EXT',        '.mst');
 
 /**
  * Implements hook_menu().
  */
 function liftigniter_menu() {
   return array(
-    'admin/config/services'] = array(
+    'admin/config/services/liftigniter' => array(
       'title' => 'Lift Igniter',
       'description' => 'Lift Igniter, recommendation integration',
       'page callback' => 'drupal_get_form',
@@ -20,6 +21,19 @@ function liftigniter_menu() {
       'access arguments' => array('administer site configuration'),
       'type' => MENU_NORMAL_ITEM,
       'file' => 'liftigniter.admin.inc',
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_permission().
+ */
+function liftigniter_permission() {
+  return array(
+    'view liftigniter blocks' => array(
+      'title' => t('View Lift Igniter Blocks'),
+      'description' => t('View the recommendations provided in Lift Igniter blocks.'),
     ),
   );
 }
@@ -46,8 +60,18 @@ function liftigniter_library() {
 /**
  * Implements hook_preproess_page().
  */
-function liftigniter_preprocess_page($vars) {
-  // Global settings.
+function liftigniter_preprocess_page(&$variables) {
+  // if (module_exists('datalayer')) {
+  //   drupal_add_html_head(array(
+  //     '#type' => 'html_tag',
+  //     '#tag' => 'script',
+  //     '#value' => drupal_json_encode(datalayer_get_page_data()),
+  //     '#attributes' => array(
+  //       'type' => 'application/json',
+  //       'id' => 'liftigniter-metadata',
+  //     )), 'liftigniter_metadata'
+  //   );
+  // }
 }
 
 
@@ -55,8 +79,10 @@ function liftigniter_preprocess_page($vars) {
  * Implements hook_block_info().
  */
 function liftigniter_block_info() {
+  $widgets = variable_get('liftigniter_blocks', array(LIFTIGNITER_DEFAULT_WIDGET));
   $blocks = array();
-  foreach (variable_get('liftigniter_blocks', array()) as $delta) {
+
+  foreach ($widgets as $delta) {
     $blocks['liftigniter_' . $delta] = array(
       'info' => t('Lift Igniter: ' . $delta),
       'cache' => DRUPAL_NO_CACHE,
@@ -75,17 +101,19 @@ function liftigniter_block_info() {
  * @return array
  */
 function liftigniter_block_view($delta = '') {
+  if (!user_access('view liftigniter blocks')) {
+    return false;
+  }
+
   // Keep a running list of all widget blocks being output on the page.
   $widgets = &drupal_static(__FUNCTION__, array());
   $widgets = $widgets + array($delta);
-  // Register widget for rendering by behavior.
-  drupal_add_js(array('liftIgniter', array('widgets' => $widgets)), 'setting');
 
   // Place mustache template in the head.
   $template_output = array(
     '#type' => 'html_tag',
     '#tag' => 'script',
-    '#value' => liftigniter_get_template($delta),
+    '#value' => "\r\n" . liftigniter_get_template($delta),
     '#attributes' => array(
       'type' => 'application/mustache',
       'id' => LIFTIGNITER_LIST_PREFIX . $delta,
@@ -93,30 +121,38 @@ function liftigniter_block_view($delta = '') {
   );
   drupal_add_html_head($template_output, 'liftigniter_template_' . $delta);
 
-  // Add base JS library, use CDN if not present yet.
-  if (drupal_get_library('liftigniter')) {
-    $blocks['liftigniter_page']['#attached']['library'][] = 'liftigniter';
-  }
-  else {
-    $blocks['liftigniter_page']['#attached']['js'][] = '//cdn.petametrics.com/p.js';
-  }
+  // Prepare settings.
+  $settings = array('liftIgniter' => array(
+    // @todo Per widget item number setting within block admin.
+    'max' => variable_get('liftigniter_max_items', 5),
+    'apiKey' => variable_get('liftigniter_api_key', ''),
+    'widgets' => $widgets,
+  ));
 
   // Return block render array for DOM placeholder and inject global settings.
-  return array(
+  $block = array(
     'subject' => t('Recommended'),
-    '#markup' => '<div id="li-recommendation-' . $delta . '"></div>',
-    '#attached' => array(
-      'js' => array(
-        drupal_get_path('module', 'liftigniter') . '/liftigniter.js',
-        array(
-          'data' => array('liftIgniterApiKey' => variable_get('liftigniter_api_key', '')),
-          'type' => 'setting'
+    'content' => array(
+      '#markup' => '<div id="li-recommendation-' . $delta . '"></div>',
+      '#attached' => array(
+        'js' => array(
+          drupal_get_path('module', 'liftigniter') . '/liftigniter.js',
+          array('type' => 'setting', 'data' => $settings),
+          array('type' => 'inline', 'data' => _liftigniter_get_script()),
         ),
-        // @todo Per widget item number setting within block admin.
-        'max' => variable_get('liftigniter_max_items', 5),
       ),
     ),
   );
+
+  // Add base JS library, use CDN if not present yet.
+  if (drupal_get_library('liftigniter')) {
+    $block['#attached']['library'][] = 'liftigniter';
+  }
+  else {
+    $block['#attached']['js'][] = '//cdn.petametrics.com/p.js';
+  }
+
+  return $block;
 }
 
 
@@ -137,17 +173,18 @@ function liftigniter_get_template($delta) {
   global $theme;
   $theme_path = drupal_get_path('theme', $theme) . '/';
   $locations = array(
-    $theme_path . 'templates/' . LIFTIGNITER_TPL_PREFIX . $delta,
-    $theme_path . 'templates/' . LIFTIGNITER_TPL_PREFIX . 'default',
-    $theme_path . LIFTIGNITER_TPL_PREFIX . $delta,
-    $theme_path . LIFTIGNITER_TPL_PREFIX . 'default',
-    drupal_get_path('module', 'liftigniter') . '/liftigniter-' . $delta,
+    $theme_path . 'templates/' . $delta,
+    $theme_path . 'templates/liftigniter_default-widget',
+    $theme_path . $delta,
+    $theme_path . 'liftigniter_default-widget',
+    drupal_get_path('module', 'liftigniter') . '/' . $delta,
+    drupal_get_path('module', 'liftigniter') . '/liftigniter_default-widget',
   );
   // Allow inserting candidate template locations.
   drupal_alter('liftigniter_templates', $locations);
 
   // Test until found.
-  foreach ($locations as $path) {
+  foreach (array_unique($locations) as $path) {
     if (is_file($path . LIFTIGNITER_TPL_EXT)) {
       // File dirty work.
       ob_start();
@@ -161,4 +198,17 @@ function liftigniter_get_template($delta) {
 
   drupal_set_message(t('Lift Igniter template file missing: ') . $delta,'error');
   return FALSE;
+}
+
+
+/**
+ * Return the embed code with key inserted.
+ * @return [type] [description]
+ */
+function _liftigniter_get_script() {
+  return "
+    (function(w,d,s,p,v,e,r) {w['$petametrics_var']=v;w[v]=w[v]||function(){(w[v].q=w[v].q||[]).push(arguments)};w[v].l=1*new Date();e=d.createElement(s),r=d.getElementsByTagName(s)[0];e.async=1;e.src=p;r.parentNode.insertBefore(e,r)})(window,document,'script','//cdn.petametrics.com/p.js','$p');
+    $p('init', '" . variable_get('liftigniter_api_key', '') ."');
+    $p('send', 'pageview');
+  ";
 }

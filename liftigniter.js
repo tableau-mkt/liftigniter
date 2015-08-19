@@ -10,7 +10,8 @@
   Drupal.behaviors.liftIgniter = {
     attach: function liftIgniterDrupal(context, settings) {
 
-      var listPrefix = '#li-recommendation-';
+      var listPrefix = '#li-recommendation-',
+          waypoint;
 
       // Ajax protection.
       if (context !== document) return;
@@ -38,8 +39,22 @@ console.log(JSON.stringify(response, null, 2));
         );
       }
 
-      // Execute the registered widgets just once.
-      $p('fetch');
+      if (typeof Waypoint !== 'undefined') {
+        waypoint = new Waypoint({
+          element: $('#block-liftigniter-' + settings.liftIgniter.widgets[w]),
+          handler: function(direction) {
+
+console.log('Waypoint reached. Getting recommendations.');
+
+            $p('fetch');
+
+          }
+        })
+      }
+      else {
+        // Execute the registered widgets just once.
+        $p('fetch');
+      }
     },
 
 

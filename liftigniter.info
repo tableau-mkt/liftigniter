@@ -1,0 +1,3 @@
+name = Lift Igniter
+description = Recommendation service integration.
+core = 7.x

@@ -83,7 +83,7 @@ function liftigniter_block_info() {
   $blocks = array();
 
   foreach ($widgets as $delta) {
-    $blocks['liftigniter_' . $delta] = array(
+    $blocks[$delta] = array(
       'info' => t('Lift Igniter: ' . $delta),
       'cache' => DRUPAL_NO_CACHE,
     );
@@ -113,7 +113,7 @@ function liftigniter_block_view($delta = '') {
   $template_output = array(
     '#type' => 'html_tag',
     '#tag' => 'script',
-    '#value' => "\r\n" . liftigniter_get_template($delta),
+    '#value' => "\r\n" . _liftigniter_get_template($delta),
     '#attributes' => array(
       'type' => 'application/mustache',
       'id' => LIFTIGNITER_LIST_PREFIX . $delta,
@@ -136,9 +136,9 @@ function liftigniter_block_view($delta = '') {
       '#markup' => '<div id="li-recommendation-' . $delta . '"></div>',
       '#attached' => array(
         'js' => array(
-          drupal_get_path('module', 'liftigniter') . '/liftigniter.js',
           array('type' => 'setting', 'data' => $settings),
           array('type' => 'inline', 'data' => _liftigniter_get_script()),
+          drupal_get_path('module', 'liftigniter') . '/liftigniter.js',
         ),
       ),
     ),
@@ -162,7 +162,7 @@ function liftigniter_block_view($delta = '') {
  * @return string
  *   Contents of template file.
  */
-function liftigniter_get_template($delta) {
+function _liftigniter_get_template($delta) {
   // Check static or cached version. NOTE: Assignment test.
   $template = &drupal_static(__FUNCTION__ . $delta, FALSE);
   if (!$template && $template = cache_get('liftigniter_template_' . $delta, FALSE)) {
@@ -174,11 +174,11 @@ function liftigniter_get_template($delta) {
   $theme_path = drupal_get_path('theme', $theme) . '/';
   $locations = array(
     $theme_path . 'templates/' . $delta,
-    $theme_path . 'templates/liftigniter_default-widget',
+    $theme_path . 'templates/default-widget',
     $theme_path . $delta,
-    $theme_path . 'liftigniter_default-widget',
+    $theme_path . 'default-widget',
     drupal_get_path('module', 'liftigniter') . '/' . $delta,
-    drupal_get_path('module', 'liftigniter') . '/liftigniter_default-widget',
+    drupal_get_path('module', 'liftigniter') . '/default-widget',
   );
   // Allow inserting candidate template locations.
   drupal_alter('liftigniter_templates', $locations);
@@ -207,8 +207,8 @@ function liftigniter_get_template($delta) {
  */
 function _liftigniter_get_script() {
   return "
-    (function(w,d,s,p,v,e,r) {w['$petametrics_var']=v;w[v]=w[v]||function(){(w[v].q=w[v].q||[]).push(arguments)};w[v].l=1*new Date();e=d.createElement(s),r=d.getElementsByTagName(s)[0];e.async=1;e.src=p;r.parentNode.insertBefore(e,r)})(window,document,'script','//cdn.petametrics.com/p.js','$p');
-    $p('init', '" . variable_get('liftigniter_api_key', '') ."');
-    $p('send', 'pageview');
+    (function(w,d,s,p,v,e,r) {w['\$petametrics_var']=v;w[v]=w[v]||function(){(w[v].q=w[v].q||[]).push(arguments)};w[v].l=1*new Date();e=d.createElement(s),r=d.getElementsByTagName(s)[0];e.async=1;e.src=p;r.parentNode.insertBefore(e,r)})(window,document,'script','//cdn.petametrics.com/p.js','\$p');
+    \$p('init', '" . variable_get('liftigniter_api_key', '') ."');
+    \$p('send', 'pageview');
   ";
 }

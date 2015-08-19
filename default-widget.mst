@@ -1,3 +1,5 @@
+<strong>{{ master }}</strong>
+
 {{#items}}
 <div class='recommended_item'>
   <a class='image-bg' href='{{url}}'

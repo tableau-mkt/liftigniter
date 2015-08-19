@@ -8,53 +8,50 @@
 
 (function($, $p) {
   Drupal.behaviors.liftIgniter = {
-    attach: function liftIgniterDrupal(context, settings) {
+    attach: function liftIgniter(context, settings) {
 
-      var listPrefix = '#li-recommendation-',
-          waypoint;
+      var prefix = '#li-recommendation-',
+          widgets = settings.liftIgniter.widgets,
+          waypoints = [];
 
       // Ajax protection.
       if (context !== document) return;
 
-      /**
-       * Render API return results for display.
-       */
-      function render(delta, response) {
-        var el = $(listPrefix + delta);
-            template = $(listPrefix + delta).innerHTML;
-        // Basically Mustache.render(template, resp);
-        el.innerHTML = $p('render', template, response);
-
-console.log(JSON.stringify(response, null, 2));
-
-      }
-
       // Register all widgets for API fetching.
-      for (w in settings.liftIgniter.widgets) {
+      for (w in widgets) {
         $p('register', {
           // @todo Per widget item number setting within block admin.
           max: 5,
-          widget: settings.liftIgniter.widgets[w],
-          callback: render(settings.liftIgniter.widgets[w], response)
-        );
-      }
+          widget: widgets[w],
+          callback: function(response) {
+            var template = $('script' + prefix + widgets[w])[0].innerHTML;
 
-      if (typeof Waypoint !== 'undefined') {
-        waypoint = new Waypoint({
-          element: $('#block-liftigniter-' + settings.liftIgniter.widgets[w]),
-          handler: function(direction) {
+response.master = 'craps';
+console.log(template);
+console.log(response);
+console.log($p('render', "<h1>{{master}}</h1>", {master: 'thing'}));
 
-console.log('Waypoint reached. Getting recommendations.');
-
-            $p('fetch');
-
+            $('div' + prefix + widgets[w])[0].innerHTML = $p('render', template, response);
           }
-        })
+        });
       }
-      else {
+
+      // if (typeof Waypoint !== 'undefined') {
+        // waypoint.push(new Waypoint({
+        //   element: $('#block-liftigniter-' + settings.liftIgniter.widgets[w]),
+        //   handler: function(direction) {
+
+// console.log('Waypoint reached. Getting recommendations.');
+
+      $p('fetch');
+
+        //   }
+        // }));
+      // }
+      // else {
         // Execute the registered widgets just once.
-        $p('fetch');
-      }
+      //   $p('fetch');
+      // }
     },
 
 

@@ -81,8 +81,10 @@ function liftigniter_preprocess_page(&$variables) {
  * Implements hook_block_info().
  */
 function liftigniter_block_info() {
-  $widgets = variable_get('liftigniter_blocks', array(LIFTIGNITER_DEFAULT_WIDGET));
   $blocks = array();
+  $widgets = array_map('trim', explode(',',
+    variable_get('liftigniter_widget_blocks', LIFTIGNITER_DEFAULT_WIDGET)
+  ));
 
   foreach ($widgets as $delta) {
     $blocks[$delta] = array(
@@ -140,20 +142,13 @@ function liftigniter_block_view($delta = '') {
       '#attached' => array(
         'js' => array(
           array('type' => 'setting', 'data' => $settings),
+          // @todo Self-hosted script option.
           array('type' => 'inline', 'data' => _liftigniter_get_script()),
           drupal_get_path('module', 'liftigniter') . '/liftigniter.js',
         ),
       ),
     ),
   );
-
-  // Add base JS library, use CDN if not present yet.
-  if (drupal_get_library('liftigniter')) {
-    $block['#attached']['library'][] = 'liftigniter';
-  }
-  else {
-    $block['#attached']['js'][] = '//cdn.petametrics.com/p.js';
-  }
 
   // Delay fornt-end API requests.
   if (drupal_get_library('waypoints') && variable_get('liftigniter_waypoints', FALSE)) {

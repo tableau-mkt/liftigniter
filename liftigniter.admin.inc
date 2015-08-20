@@ -74,21 +74,14 @@ function liftigniter_settings_form($form_state) {
   // );
 
   $form['liftigniter_widget_blocks'] = array(
-    '#type' => 'checkboxes',
+    '#type' => 'textfield',
     '#title' => 'Avaiable widgets',
-    '#default_value' => variable_get('liftigniter_widget_blocks', array(LIFTIGNITER_DEFAULT_WIDGET)),
-    '#options' => drupal_map_assoc(array(LIFTIGNITER_DEFAULT_WIDGET)),
-    '#attached' => array('js' => array("
-        var $elm = $('.form-item-widget-blocks');
-        $elm.empty();
-        $.each(Drupal.behaviors.liftIgniter.getWidgets(), function() {
-          $elm.append($('<option>', {
-            value: this,
-            text: this
-          });
-        });
-      ",
-      array('type' => 'inline')
+    '#description' => t('List widget names to make available as blocks. Known: '),
+    '#default_value' => variable_get('liftigniter_widget_blocks', LIFTIGNITER_DEFAULT_WIDGET),
+    '#attached' => array('js' => array(
+      array('type' => 'inline', 'data' => _liftigniter_get_script()),
+      drupal_get_path('module', 'liftigniter') . '/liftigniter.js',
+      drupal_get_path('module', 'liftigniter') . '/liftigniter-admin.js',
     )),
   );
 

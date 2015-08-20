@@ -11,7 +11,7 @@
     attach: function liftIgniter(context, settings) {
 
       var prefix = '#li-recommendation-',
-          widgets = settings.liftIgniter.widgets,
+          widgets = (settings.liftIgniter) ? settings.liftIgniter.widgets : [],
           fetched;
 
       // Ajax protection.

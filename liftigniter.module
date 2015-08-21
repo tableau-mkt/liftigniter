@@ -111,7 +111,7 @@ function liftigniter_block_view($delta = '') {
 
   // Keep a running list of all widget blocks being output on the page.
   $widgets = &drupal_static(__FUNCTION__, array());
-  $widgets = array($delta) + $widgets;
+  $widgets = $widgets + array($delta);
 
   // Place mustache template in the head.
   $template_output = array(
@@ -150,10 +150,18 @@ function liftigniter_block_view($delta = '') {
     ),
   );
 
-  // Delay fornt-end API requests.
-  if (drupal_get_library('waypoints') && variable_get('liftigniter_waypoints', FALSE)) {
-    $block['#attached']['library'][] = 'waypoints';
+  // Delay fornt-end API requests. Allow different library names.
+  $waypoints = FALSE;
+  if (libraries_get_path('jquery-waypoints')) {
+    $waypoints = 'jquery-waypoints';
   }
+  if (libraries_get_path('waypoints')) {
+    $waypoints = 'waypoints';
+  }
+  if ($waypoints) {
+    $block['#attached']['library'][] = $waypoints;
+  }
+
 
   return $block;
 }
@@ -167,8 +175,10 @@ function liftigniter_block_view($delta = '') {
  */
 function _liftigniter_get_template($delta) {
   // Check static or cached version. NOTE: Assignment test.
-  $template = &drupal_static(__FUNCTION__ . $delta, FALSE);
-  if (!$template && $template = cache_get('liftigniter_template_' . $delta, FALSE)) {
+  if ($template = &drupal_static(__FUNCTION__ . $delta, FALSE)) {
+    return $template;
+  }
+  if ($template = cache_get('liftigniter_template_' . $delta, FALSE)) {
     return $template;
   }
 
@@ -189,29 +199,30 @@ function _liftigniter_get_template($delta) {
   // Test until found.
   foreach (array_unique($locations) as $path) {
     if (is_file($path . LIFTIGNITER_TPL_EXT)) {
-      // File dirty work.
-      ob_start();
-      include $path . LIFTIGNITER_TPL_EXT;
-      $template = ob_get_clean();
-      // Stash and go.
+      // Get, stash and go.
+      $template = file_get_contents($path . LIFTIGNITER_TPL_EXT);
       cache_set('liftigniter_template_' . $delta, $template);
       return $template;
     }
   }
 
-  drupal_set_message(t('Lift Igniter template file missing: ') . $delta,'error');
+  watchdog('liftigniter', 'Lift Igniter template file missing: @file', array('@file' => $delta), WATCHDOG_ERROR);
   return FALSE;
 }
 
 
 /**
  * Return the embed code with key inserted.
- * @return [type] [description]
+ * @return string
  */
 function _liftigniter_get_script() {
-  return "
-    (function(w,d,s,p,v,e,r) {w['\$petametrics_var']=v;w[v]=w[v]||function(){(w[v].q=w[v].q||[]).push(arguments)};w[v].l=1*new Date();e=d.createElement(s),r=d.getElementsByTagName(s)[0];e.async=1;e.src=p;r.parentNode.insertBefore(e,r)})(window,document,'script','//cdn.petametrics.com/p.js','\$p');
-    \$p('init', '" . variable_get('liftigniter_api_key', '') ."');
-    \$p('send', 'pageview');
-  ";
+  // Assignment test for key set.
+  if ($key = variable_get('liftigniter_api_key', FALSE)) {
+    return "
+      (function(w,d,s,p,v,e,r) {w['\$petametrics_var']=v;w[v]=w[v]||function(){(w[v].q=w[v].q||[]).push(arguments)};w[v].l=1*new Date();e=d.createElement(s),r=d.getElementsByTagName(s)[0];e.async=1;e.src=p;r.parentNode.insertBefore(e,r)})(window,document,'script','//cdn.petametrics.com/p.js','\$p');
+      \$p('init', '" . $key ."');
+      \$p('send', 'pageview');
+    ";
+  }
+  return '';
 }

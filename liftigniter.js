@@ -27,13 +27,13 @@
             var template = $('script' + prefix + widgets[i])[0].innerHTML,
                 $element = $('div' + prefix + widgets[i]);
 
-// NOTE: Widget index incorrect due to scope.
+            // NOTE: Widget index incorrect due to scope.
+            // Limited to just one widget currently.
 
             $element[0].style.display = 'none';
             $element[0].innerHTML = $p('render', template, responseData);
             $element.fadeIn();
-          },
-          opts: {index: i}
+          }
         });
 
         // Execute all the registered widgets, possible scroll delay.

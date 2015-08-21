@@ -9,53 +9,48 @@
 function liftigniter_settings_form($form_state) {
   $form = array();
   // Check previous, note: assignment compare.
-  if ($api_key = variable_get('liftigniter_api_key', '')) {
-    drupal_http_request('https://query.petametrics.com/v1/model', array(
-      'method' => 'GET',
-      'headers' => array(
-        'Content-Type' => 'application/json',
-        'apiKey' => $api_key,
-        'maxCount' => variable_get('liftigniter_max_items', 5)
-      ),
-    ));
-  }
+  // if ($api_key = variable_get('liftigniter_api_key', '')) {
+  //   drupal_http_request('https://query.petametrics.com/v1/model', array(
+  //     'method' => 'GET',
+  //     'headers' => array(
+  //       'Content-Type' => 'application/json',
+  //       'apiKey' => $api_key,
+  //       'maxCount' => variable_get('liftigniter_max_items', 5)
+  //     ),
+  //   ));
+  // }
 
-  // Extra notes.
-  if (!drupal_get_library('liftigniter')) {
+  $form['liftigniter_api_key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Javascript API key'),
+    '#default_value' => variable_get('liftigniter_api_key', ''),
+    '#description' => t('Service API key for use within javascript.'),
+  );
+  if (!libraries_get_path('jquery-waypoints') && !libraries_get_path('waypoints')) {
     drupal_set_message(t(
       'Avoid recommendation loading until scrolling to the block(s) with the !waypoints library', array(
         '!waypoints' => l('Waypoints', 'https://github.com/imakewebthings/waypoints')
     )), 'warning');
   }
-  if (!drupal_get_library('liftigniter')) {
-    $form['#prefix'] = t('Javascript library not found, loading via remote CDN.');
+  else {
+    $form['liftigniter_waypoints'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Use Waypoints'),
+      '#default_value' => variable_get('liftigniter_waypoints', FALSE),
+      '#description' => t('Use waypoints to delay looking up recommendations until scrolled-to.'),
+    );
   }
 
-  $form['liftigniter_api_key'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Javascript API key'),
-    '#default_value' => $api_key,
-    '#description' => t('Service API key for use within javascript.'),
-  );
-
-  $form['liftigniter_waypoints'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Use Waypoints'),
-    '#default_value' => variable_get('liftigniter_waypoints', FALSE),
-    '#description' => t('Use waypoints to delay looking up recommendations until scrolled-to.'),
-  );
-  if (!drupal_get_library('waypoints')) {
-    drupal_set_message('Waypoints library not yet available.', 'warning');
-  }
-
-  $form['liftigniter_datalayer'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Send DataLayer details'),
-    '#default_value' => variable_get('liftigniter_datalayer', FALSE),
-    '#description' => t('Expose page entity data via DataLayer module to Lift Igniter.'),
-  );
   if (!module_exists('datalayer')) {
-    drupal_set_message('DataLayer module not yet avilable.', 'warning');
+    drupal_set_message(t('DataLayer module not yet avilable for entity meta data output.'), 'warning');
+  }
+  else {
+    $form['liftigniter_datalayer'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Send DataLayer details'),
+      '#default_value' => variable_get('liftigniter_datalayer', FALSE),
+      '#description' => t('Expose page entity data via DataLayer module to Lift Igniter.'),
+    );
   }
 
   $form['liftigniter_max_items'] = array(

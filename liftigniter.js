@@ -6,6 +6,9 @@
  *   https://github.com/janl/mustache.js
  */
 
+/* jshint loopfunc:true, forin:false */
+/* globals $p */
+
 (function($) {
   Drupal.behaviors.liftIgniter = {
     attach: function liftIgniter(context, settings) {
@@ -15,43 +18,49 @@
           fetched;
 
       // Ajax protection.
-      if (context !== document) return;
+      if (context !== document) {
+        return;
+      }
 
       // Register all widgets for API fetching.
       for (var i in widgets) {
-        $p('register', {
-          // @todo Per widget item number setting within block admin.
-          max: 5,
-          widget: widgets[i],
-          callback: function(responseData) {
-            var template = $('script' + prefix + widgets[i])[0].innerHTML,
-                $element = $('div' + prefix + widgets[i]);
+        (function(index) {
 
-            // NOTE: Widget index incorrect due to scope.
-            // Limited to just one widget currently.
+          $p('register', {
+            // @todo Per widget item number setting within block admin.
+            max: 5,
+            widget: widgets[index],
+            callback: function(responseData) {
+              var template = $('script' + prefix + widgets[index])[0].innerHTML,
+                  $element = $('div' + prefix + widgets[index]);
 
-            $element[0].style.display = 'none';
-            $element[0].innerHTML = $p('render', template, responseData);
-            $element.fadeIn();
-          }
-        });
-
-        // Execute all the registered widgets, possible scroll delay.
-        if (typeof $.waypoints !== 'undefined' && settings.liftIgniter.useWaypoints) {
-          $('#block-liftigniter-' + widgets[i]).waypoint(function() {
-              if (!fetched) {
-                $p('fetch');
-                fetched = true;
+              if (responseData.hasOwnProperty('items') && responseData.items.length) {
+                $element[0].style.visibility = 'hidden';
+                $element[0].innerHTML = $p('render', template, responseData);
+                $element.css('visibility','visible').hide().fadeIn("slow");
               }
-            }, {
-            offset:'100%',
-            triggerOnce:true
+            }
           });
-        }
-        else {
-          $p('fetch');
-        }
+
+          // Execute all the registered widgets, possible scroll delay.
+          if (typeof $.waypoints !== 'undefined' && settings.liftIgniter.useWaypoints) {
+            $('#block-liftigniter-' + widgets[index]).waypoint(function() {
+                if (!fetched) {
+                  $p('fetch');
+                  fetched = true;
+                }
+              }, {
+              offset:'100%',
+              triggerOnce:true
+            });
+          }
+          else {
+            $p('fetch');
+          }
+
+        })(i);
       }
+
     },
 
     /**
@@ -66,5 +75,5 @@
         }
       });
     }
-  }
+  };
 })(jQuery);

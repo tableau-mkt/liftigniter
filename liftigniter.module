@@ -111,7 +111,7 @@ function liftigniter_block_view($delta = '') {
 
   // Keep a running list of all widget blocks being output on the page.
   $widgets = &drupal_static(__FUNCTION__, array());
-  $widgets = $widgets + array($delta);
+  $widgets = array($delta) + $widgets;
 
   // Place mustache template in the head.
   $template_output = array(

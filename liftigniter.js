@@ -34,7 +34,7 @@
               var template = $('script' + prefix + widgets[index])[0].innerHTML,
                   $element = $('div' + prefix + widgets[index]);
 
-              if (responseData.hasOwnProperty('items') && responseData.items.length) {
+              if (responseData.items && responseData.items.length) {
                 $element[0].style.visibility = 'hidden';
                 $element[0].innerHTML = $p('render', template, responseData);
                 $element.css('visibility','visible').hide().fadeIn("slow");

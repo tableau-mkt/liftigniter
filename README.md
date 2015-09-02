@@ -1,12 +1,12 @@
-Lift Igniter
+LiftIgniter
 ==============
-**Integrate the Lift Igniter recommendation service.**
+**Integrate the LiftIgniter recommendation service.**
 
-Set which widgets are available as blocks via a Drupal admin page, which pulls from the Lift Igniter API.  Through their service you can create custom widgets or just a few standards.
+Set which widgets are available as blocks via a Drupal admin page, which pulls from the LiftIgniter API.  Through their service you can create custom widgets or just a few standards.
 
 ## Display
 
-Use front-end [Mustache](https://github.com/janl/mustache.js) templates to control rendering of data returned by Lift Igniter.
+Use front-end [Mustache](https://github.com/janl/mustache.js) templates to control rendering of data returned by LiftIgniter.
 ```handlebars
 {{#items}}
 <div class='recommended_item'>
@@ -40,7 +40,7 @@ function my_module_liftigniter_templates_alter(&$locations) {
 
 ## Extra Data
 
-Data sent to Lift Ignitor is done through OpenGraph meta tags or Lift Igniter javascript tags.
+Data sent to LiftIgnitor is done through OpenGraph meta tags or LiftIgniter javascript tags.
 
 OpenGraph options...
 * [drupal.org/project/metatag](https://www.drupal.org/project/metatag)
@@ -49,7 +49,7 @@ OpenGraph options...
 
 Or borrow the [Data Layer](https://www.drupal.org/project/datalayer) details.
 
-Or create your own custom metadata tags via the Lift Igniter SDK...
+Or create your own custom metadata tags via the LiftIgniter SDK...
 ```html
 <script id="liftigniter-metadata" type="application/json">
 {
@@ -63,4 +63,4 @@ Or create your own custom metadata tags via the Lift Igniter SDK...
 
 ## References
 
-* [Lift Igniter API documentation](http://www.liftigniter.com/liftigniter-javascript-sdk-docs-1-1)
+* [LiftIgniter API documentation](http://www.liftigniter.com/liftigniter-javascript-sdk-docs-1-1)

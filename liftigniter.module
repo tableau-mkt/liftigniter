@@ -1,6 +1,6 @@
 <?php
 /**
- * @file Lift Igniter, recommendation service integration.
+ * @file LiftIgniter, recommendation service integration.
  */
 
 define('LIFTIGNITER_DEFAULT_WIDGET', 'default-widget');
@@ -14,8 +14,8 @@ define('LIFTIGNITER_TPL_EXT',        '.mst');
 function liftigniter_menu() {
   return array(
     'admin/config/services/liftigniter' => array(
-      'title' => 'Lift Igniter',
-      'description' => 'Lift Igniter, recommendation integration',
+      'title' => 'LiftIgniter',
+      'description' => 'LiftIgniter, recommendation integration',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('liftigniter_settings_form'),
       'access arguments' => array('administer site configuration'),
@@ -33,7 +33,7 @@ function liftigniter_permission() {
   return array(
     'view liftigniter blocks' => array(
       'title' => t('View Lift Igniter Blocks'),
-      'description' => t('View the recommendations provided in Lift Igniter blocks.'),
+      'description' => t('View the recommendations provided in LiftIgniter blocks.'),
     ),
   );
 }
@@ -44,7 +44,7 @@ function liftigniter_permission() {
  */
 function liftigniter_library() {
   return array('liftigniter' => array(
-    'title' => 'Lift Igniter JS API',
+    'title' => 'LiftIgniter JS API',
     'version' => '1.0.0',
     'js' => array(
       libraries_get_path('liftigniter') . '/liftigniter.js' => array(
@@ -86,9 +86,10 @@ function liftigniter_block_info() {
     variable_get('liftigniter_widget_blocks', LIFTIGNITER_DEFAULT_WIDGET)
   ));
 
+  // Create a block for each widget.
   foreach ($widgets as $delta) {
     $blocks[$delta] = array(
-      'info' => t('Lift Igniter: ' . $delta),
+      'info' => t('LiftIgniter: ' . $delta),
       'cache' => DRUPAL_NO_CACHE,
     );
   }
@@ -138,7 +139,7 @@ function liftigniter_block_view($delta = '') {
   $block = array(
     'subject' => t('Recommended'),
     'content' => array(
-      '#markup' => '<div id="li-recommendation-' . $delta . '"></div>',
+      '#markup' => '<div id="' . LIFTIGNITER_LIST_PREFIX . $delta . '"></div>',
       '#attached' => array(
         'js' => array(
           array('type' => 'setting', 'data' => $settings),
@@ -161,7 +162,6 @@ function liftigniter_block_view($delta = '') {
   if ($waypoints) {
     $block['#attached']['library'][] = $waypoints;
   }
-
 
   return $block;
 }
@@ -206,7 +206,7 @@ function _liftigniter_get_template($delta) {
     }
   }
 
-  watchdog('liftigniter', 'Lift Igniter template file missing: @file', array('@file' => $delta), WATCHDOG_ERROR);
+  watchdog('liftigniter', 'LiftIgniter template file missing: @file', array('@file' => $delta), WATCHDOG_ERROR);
   return FALSE;
 }
 
@@ -218,11 +218,14 @@ function _liftigniter_get_template($delta) {
 function _liftigniter_get_script() {
   // Assignment test for key set.
   if ($key = variable_get('liftigniter_api_key', FALSE)) {
-    return "
-      (function(w,d,s,p,v,e,r) {w['\$petametrics_var']=v;w[v]=w[v]||function(){(w[v].q=w[v].q||[]).push(arguments)};w[v].l=1*new Date();e=d.createElement(s),r=d.getElementsByTagName(s)[0];e.async=1;e.src=p;r.parentNode.insertBefore(e,r)})(window,document,'script','//cdn.petametrics.com/p.js','\$p');
-      \$p('init', '" . $key ."');
-      \$p('send', 'pageview');
-    ";
+
+    // Note the need for parsing $key but not $p vars.
+    return <<<EOD
+(function(w,d,s,p,v,e,r) {w['\$petametrics_var']=v;w[v]=w[v]||function(){(w[v].q=w[v].q||[]).push(arguments)};w[v].l=1*new Date();e=d.createElement(s),r=d.getElementsByTagName(s)[0];e.async=1;e.src=p;r.parentNode.insertBefore(e,r)})(window,document,'script','//cdn.petametrics.com/p.js','\$p');
+\$p('init', '$key');
+\$p('send', 'pageview');
+EOD;
+
   }
   return '';
 }

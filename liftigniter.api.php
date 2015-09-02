@@ -1,6 +1,6 @@
 <?php
 /**
- * @file Code documentation for the Life Igniter module.
+ * @file Code documentation for the LiftIgniter module.
  *
  * This file contains no working PHP code; it exists to provide additional
  * documentation for doxygen as well as to document hooks in the standard

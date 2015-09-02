@@ -1,8 +1,10 @@
-<ul>
-{{#items}}
-  <li class='recommended_item'>
-    <a class='image-bg' href='{{url}}' style='background-image:url({{thumbnail}})'></a>
-    <a class='headline' href='{{url}}'>{{title}}</a>
+<ul class="recommended">
+  {{#items}}
+  <li class="recommended_item">
+    <a href="{{url}}">
+      <img class="recommended_thumb" src="{{thumbnail}}">
+      <span class="recommended_title">{{title}}</span>
+    </a>
   </li>
-{{/items}}
+  {{/items}}
 </ul>

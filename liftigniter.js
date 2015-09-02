@@ -1,5 +1,5 @@
 /**
- * Access the Lift Igniter API for widgets in Drupal.
+ * Access the LiftIgniter API for widgets in Drupal.
  *
  * Resources:
  *   http://www.liftigniter.com/liftigniter-javascript-sdk-docs-1-1
@@ -34,9 +34,9 @@
               var template = $('script' + prefix + widgets[index])[0].innerHTML,
                   $element = $('div' + prefix + widgets[index]);
 
-              if (responseData.items && responseData.items.length) {
-                $element[0].style.visibility = 'hidden';
-                $element[0].innerHTML = $p('render', template, responseData);
+              if ($element.length && responseData.items && responseData.items.length) {
+                $element.css('visibility','hidden');
+                $element.html($p('render', template, responseData));
                 $element.css('visibility','visible').hide().fadeIn("slow");
               }
             }

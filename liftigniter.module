@@ -151,7 +151,7 @@ function liftigniter_block_view($delta = '') {
     ),
   );
 
-  // Delay fornt-end API requests. Allow different library names.
+  // Delay front-end API requests. Allow different library names.
   $waypoints = FALSE;
   if (libraries_get_path('jquery-waypoints')) {
     $waypoints = 'jquery-waypoints';

@@ -61,13 +61,49 @@ function liftigniter_library() {
  * Implements hook_preproess_page().
  */
 function liftigniter_preprocess_page(&$variables) {
-  // Just piggy back the entity data.
-  // @todo Offer settings for meta data.
+  // Just piggy-back/simplify DataLayer entity data colleciton code.
   if (module_exists('datalayer') && variable_get('liftigniter_datalayer', FALSE)) {
+
+    $type = FALSE;
+    $obj = _datalayer_menu_get_any_object($type);
+    $output_data = array();
+
+    if (is_object($obj) && $type) {
+      $entity_info = entity_get_info($type);
+      $bundle = FALSE;
+
+      // Entity basics.
+      $output_data['type'] = $type;
+      if (isset($obj->{$entity_info['entity keys']['bundle']})) {
+        $bundle = $obj->{$entity_info['entity keys']['bundle']};
+        $output_data['bundle'] = $bundle;
+      }
+
+      // Entity property addition via hook.
+      $properties = array(
+        'language',
+      );
+      foreach (module_implements('liftigniter_meta') as $module) {
+        // Combine modules implementing hook_liftigniter_meta().
+        $properties = array_merge($properties, module_invoke($module, 'liftigniter_meta'));
+      }
+
+      // Collect data.
+      foreach ($properties as $p) {
+        if (isset($obj->$p)) {
+          $output_data[$p] = $obj->$p;
+        }
+      }
+    }
+
+    // Allow manual changes.
+    drupal_alter('liftigniter_meta', $output_data);
+
+    // Put data on the page.
     drupal_add_html_head(array(
       '#type' => 'html_tag',
       '#tag' => 'script',
-      '#value' => drupal_json_encode(datalayer_get_page_data()),
+      '#value' => drupal_json_encode($output_data),
       '#attributes' => array(
         'type' => 'application/json',
         'id' => 'liftigniter-metadata',

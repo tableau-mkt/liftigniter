@@ -110,6 +110,14 @@ function liftigniter_preprocess_page(&$variables) {
       )), 'liftigniter_metadata'
     );
   }
+
+  // Add settings to the page.
+  drupal_add_js(array(
+    'liftIgniter' => array(
+      'useLang' => variable_get('liftigniter_use_language', TRUE),
+    )),
+    'setting',
+  );
 }
 
 

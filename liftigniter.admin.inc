@@ -60,6 +60,13 @@ function liftigniter_settings_form($form_state) {
     '#description' => t('Number of items displayed in widgets.'),
   );
 
+  $form['liftigniter_use_language'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use page language'),
+    '#default_value' => variable_get('liftigniter_use_language', TRUE),
+    '#description' => t('Use the active page language when looking up recommendations.'),
+  );
+
   // @todo Provide admin settings for meta fields returned.
   // $form['liftigniter_request_fields'] = array(
   //   '#type' => 'textarea',

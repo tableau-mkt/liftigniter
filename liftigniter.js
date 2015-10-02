@@ -15,6 +15,7 @@
 
       var prefix = '#li-recommendation-',
           widgets = (settings.liftIgniter) ? settings.liftIgniter.widgets : [],
+          langPrefix = settings.pathPrefix.match(/^\w+-\w+\/$/),
           fetched;
 
       // Ajax protection.
@@ -30,6 +31,7 @@
             // @todo Per widget item number setting within block admin.
             max: 5,
             widget: widgets[index],
+            opts: (settings.liftIgniter.useLang && langPrefix) ? {language: langPrefix} : {},
             callback: function(responseData) {
               var template = $('script' + prefix + widgets[index])[0].innerHTML,
                   $element = $('div' + prefix + widgets[index]);

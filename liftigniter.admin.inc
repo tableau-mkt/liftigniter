@@ -47,9 +47,9 @@ function liftigniter_settings_form($form_state) {
   else {
     $form['liftigniter_datalayer'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Send DataLayer details'),
+      '#title' => t('Output entity metadata'),
       '#default_value' => variable_get('liftigniter_datalayer', FALSE),
-      '#description' => t('Expose page entity data via DataLayer module to Lift Igniter.'),
+      '#description' => t('Expose page entity data (borrowing from DataLayer module) to LiftIgniter.'),
     );
   }
 

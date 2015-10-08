@@ -61,8 +61,12 @@ function liftigniter_library() {
  * Implements hook_preproess_page().
  */
 function liftigniter_preprocess_page(&$variables) {
+  $properties = array(
+    'language',
+  );
+
   // Just piggy-back/simplify DataLayer entity data colleciton code.
-  if (module_exists('datalayer') && variable_get('liftigniter_datalayer', FALSE)) {
+  if (module_exists('datalayer') && variable_get('liftigniter_metadata', FALSE)) {
 
     $type = FALSE;
     $obj = _datalayer_menu_get_any_object($type);
@@ -72,17 +76,16 @@ function liftigniter_preprocess_page(&$variables) {
       $entity_info = entity_get_info($type);
       $bundle = FALSE;
 
-      // Entity basics.
+      // Add basic entity details.
       $output_data['type'] = $type;
       if (isset($obj->{$entity_info['entity keys']['bundle']})) {
+        // Find how bundles are accessed before looking.
         $bundle = $obj->{$entity_info['entity keys']['bundle']};
-        $output_data['bundle'] = $bundle;
+        // Use nice label.
+        $output_data['bundle'] = $entity_info['bundles'][$bundle]['label'];
       }
 
       // Entity property addition via hook.
-      $properties = array(
-        'language',
-      );
       foreach (module_implements('liftigniter_meta') as $module) {
         // Combine modules implementing hook_liftigniter_meta().
         $properties = array_merge($properties, module_invoke($module, 'liftigniter_meta'));
@@ -97,7 +100,7 @@ function liftigniter_preprocess_page(&$variables) {
     }
 
     // Allow manual changes.
-    drupal_alter('liftigniter_meta', $output_data);
+    drupal_alter('liftigniter_meta', $output_data, $type, $obj, $entity_info);
 
     // Put data on the page.
     drupal_add_html_head(array(
@@ -109,15 +112,26 @@ function liftigniter_preprocess_page(&$variables) {
         'id' => 'liftigniter-metadata',
       )), 'liftigniter_metadata'
     );
+
+    // Add field list setting to the page.
+    drupal_add_js(array('liftIgniter' => array(
+      'fields' => array_merge($properties, array(
+        'title',
+        'thumbnail',
+        'type',
+        'bundle',
+      )),
+    )), 'setting');
   }
 
-  // Add settings to the page.
-  drupal_add_js(array(
-    'liftIgniter' => array(
-      'useLang' => variable_get('liftigniter_use_language', TRUE),
-    )),
-    'setting',
-  );
+  // Add global settings to the page.
+  drupal_add_js(array('liftIgniter' => array(
+    'useLang' => variable_get('liftigniter_use_language', TRUE),
+    'apiKey' => variable_get('liftigniter_api_key', ''),
+    'useWaypoints' => variable_get('liftigniter_waypoints', FALSE),
+    'forceSameProtocol' => variable_get('liftigniter_force_same_protocol', FALSE),
+    'transformCallbacks' => array(),
+  )),'setting');
 }
 
 
@@ -132,13 +146,42 @@ function liftigniter_block_info() {
 
   // Create a block for each widget.
   foreach ($widgets as $delta) {
-    $blocks[$delta] = array(
+    $blocks['widget_' . $delta] = array(
       'info' => t('LiftIgniter: ' . $delta),
       'cache' => DRUPAL_NO_CACHE,
     );
   }
 
   return $blocks;
+}
+
+
+/**
+ * Implements hook_block_configure().
+ *
+ * @param string $delta
+ */
+function liftigniter_block_configure($delta) {
+  return array(
+    'liftigniter_max_results' => array(
+      '#type' => 'textfield',
+      '#title' => t('Nuber of results'),
+      '#size' => 10,
+      '#description' => t('Max number of results to display.'),
+      '#default_value' => variable_get('liftigniter_max_results-' . $delta, 5),
+    )
+  );
+}
+
+
+/**
+ * Implements hook_block_save().
+ *
+ * @param string $delta
+ * @param array $edit
+ */
+function liftigniter_block_save($delta, $edit) {
+  variable_set('liftigniter_max_results-' . $delta, $edit['liftigniter_max_results']);
 }
 
 
@@ -156,37 +199,35 @@ function liftigniter_block_view($delta = '') {
 
   // Keep a running list of all widget blocks being output on the page.
   $widgets = &drupal_static(__FUNCTION__, array());
-  $widgets = array($delta) + $widgets;
+  $widget_id = preg_replace('/^widget_/', '', $delta);
 
   // Place mustache template in the head.
   $template_output = array(
     '#type' => 'html_tag',
     '#tag' => 'script',
-    '#value' => "\r\n" . _liftigniter_get_template($delta),
+    '#value' => "\r\n" . _liftigniter_get_template($widget_id),
     '#attributes' => array(
       'type' => 'application/mustache',
-      'id' => LIFTIGNITER_LIST_PREFIX . $delta,
+      'id' => LIFTIGNITER_LIST_PREFIX . $widget_id,
     ),
   );
-  drupal_add_html_head($template_output, 'liftigniter_template_' . $delta);
+  drupal_add_html_head($template_output, 'liftigniter_template_' . $widget_id);
 
-  // Prepare settings.
-  $settings = array('liftIgniter' => array(
-    // @todo Per widget item number setting within block admin.
-    'max' => variable_get('liftigniter_max_items', 5),
-    'apiKey' => variable_get('liftigniter_api_key', ''),
-    'useWaypoints' => variable_get('liftigniter_waypoints', FALSE),
-    'widgets' => $widgets,
-  ));
+  // Update static variable.
+  $widgets = array($widget_id => array(
+    'max' => variable_get('liftigniter_max_results-' . $delta, 5),
+  )) + $widgets;
 
   // Return block render array for DOM placeholder and inject global settings.
   $block = array(
     'subject' => t('Recommended'),
     'content' => array(
-      '#markup' => '<div id="' . LIFTIGNITER_LIST_PREFIX . $delta . '"></div>',
+      '#markup' => '<div id="' . LIFTIGNITER_LIST_PREFIX . $widget_id . '"></div>',
       '#attached' => array(
         'js' => array(
-          array('type' => 'setting', 'data' => $settings),
+          array('type' => 'setting', 'data' => array('liftIgniter' => array(
+            'widgets' => $widgets,
+          ))),
           // @todo Self-hosted script option.
           array('type' => 'inline', 'data' => _liftigniter_get_script()),
           drupal_get_path('module', 'liftigniter') . '/liftigniter.js',
@@ -217,12 +258,13 @@ function liftigniter_block_view($delta = '') {
  * @return string
  *   Contents of template file.
  */
-function _liftigniter_get_template($delta) {
+function _liftigniter_get_template($widget_id) {
   // Check static or cached version. NOTE: Assignment test.
-  if ($template = &drupal_static(__FUNCTION__ . $delta, FALSE)) {
+  if ($template = &drupal_static(__FUNCTION__ . $widget_id, FALSE)) {
     return $template;
   }
-  if ($template = cache_get('liftigniter_template_' . $delta, FALSE)) {
+  if ($cached = cache_get('liftigniter_template_' . $widget_id)) {
+    $template = $cached->data;
     return $template;
   }
 
@@ -230,11 +272,11 @@ function _liftigniter_get_template($delta) {
   global $theme;
   $theme_path = drupal_get_path('theme', $theme) . '/';
   $locations = array(
-    $theme_path . 'templates/' . $delta,
+    $theme_path . 'templates/' . $widget_id,
     $theme_path . 'templates/default-widget',
-    $theme_path . $delta,
+    $theme_path . $widget_id,
     $theme_path . 'default-widget',
-    drupal_get_path('module', 'liftigniter') . '/' . $delta,
+    drupal_get_path('module', 'liftigniter') . '/' . $widget_id,
     drupal_get_path('module', 'liftigniter') . '/default-widget',
   );
   // Allow inserting candidate template locations.
@@ -245,12 +287,12 @@ function _liftigniter_get_template($delta) {
     if (is_file($path . LIFTIGNITER_TPL_EXT)) {
       // Get, stash and go.
       $template = file_get_contents($path . LIFTIGNITER_TPL_EXT);
-      cache_set('liftigniter_template_' . $delta, $template);
+      cache_set('liftigniter_template_' . $widget_id, $template);
       return $template;
     }
   }
 
-  watchdog('liftigniter', 'LiftIgniter template file missing: @file', array('@file' => $delta), WATCHDOG_ERROR);
+  watchdog('liftigniter', 'LiftIgniter template file missing: @file', array('@file' => $widget_id), WATCHDOG_ERROR);
   return FALSE;
 }
 

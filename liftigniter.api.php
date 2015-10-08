@@ -22,29 +22,41 @@ function hook_liftigniter_templates_alter(&$locations) {
 
 
 /**
- * Declare entity meta data properties for output.
+ * Adjust meta data sent to LiftIgniter.
  *
- * @return array
- *   Values will be merged into entity data searched for and output.
+ * @param array &$data
+ * @param string $type
+ * @param Entity $object
  */
-function hook_liftigniter_meta() {
-  return array(
-    'created';
-  );
+function hook_liftigniter_meta_alter(&$data, $type, $object) {
+  if ($type === 'node') {
+
+    // Simple swapping.
+    switch ($object->bundle) {
+      case 'my_type':
+        $data['my-property'] = 'thing';
+        $data['bundle'] = 'My Fancy Type';
+        break;
+      case 'another_type':
+        $data['my-property'] = 'that';
+        break;
+    }
+  }
+
+  // Add something.
+  $menu_route = menu_get_active_trail();
+  $data['menu-parent'] = $menu_route[1]['title'];
 }
 
 
 /**
- * Alter or add to meta data output.
- *
- * @param array &$data
+ * Set your function as a post-JSON request processor.
  */
-function hook_liftigniter_meta_alter(&$data) {
-  // Add something.
-  $menu_route = menu_get_active_trail();
-  $data['menu-parent'] = $menu_route[1]['title'];
-
-  // Change something.
-  $bundle = $data['bundle'];
-  $data['bundle'] = ($bundle === 'my_type') ? 'My Fancy Type' : $bundle;
+function hook_preprocess_page(&$variables) {
+  // Transform data after receiving from LiftIgniter.
+  drupal_add_js(array(
+    'liftIgniter' => array(
+      'transformCallback' => 'Drupal.behaviors.my_module.liftIgniter',
+    ), 'setting')
+  );
 }

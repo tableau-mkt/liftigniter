@@ -45,11 +45,11 @@ function liftigniter_settings_form($form_state) {
     drupal_set_message(t('DataLayer module not yet avilable for entity meta data output.'), 'warning');
   }
   else {
-    $form['liftigniter_datalayer'] = array(
+    $form['liftigniter_metadata'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Output entity metadata'),
-      '#default_value' => variable_get('liftigniter_datalayer', FALSE),
-      '#description' => t('Expose page entity data (borrowing from DataLayer module) to LiftIgniter.'),
+      '#title' => t('Expose meta data'),
+      '#default_value' => variable_get('liftigniter_metadata', FALSE),
+      '#description' => t('Expose page entity meta data (borrowing DataLayer module) to Lift Igniter.'),
     );
   }
 
@@ -65,6 +65,18 @@ function liftigniter_settings_form($form_state) {
     '#title' => t('Use page language'),
     '#default_value' => variable_get('liftigniter_use_language', TRUE),
     '#description' => t('Use the active page language when looking up recommendations.'),
+    '#states' => array(
+      'enabled' => array(
+        ':input[name="liftigniter_metadata"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+
+  $form['liftigniter_force_same_protocol'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Force same protocol'),
+    '#default_value' => variable_get('liftigniter_force_same_protocol', FALSE),
+    '#description' => t('Ensure all recommendations URLs are the same protocol as the displaying page.'),
   );
 
   // @todo Provide admin settings for meta fields returned.

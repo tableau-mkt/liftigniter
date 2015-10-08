@@ -4,6 +4,7 @@
     <a href="{{url}}">
       <img class="recommended_thumb" src="{{thumbnail}}">
       <span class="recommended_title">{{title}}</span>
+      {{#bundle}}<span class="recommended_bundle">{{bundle}}</span>{{/bundle}}
     </a>
   </li>
   {{/items}}

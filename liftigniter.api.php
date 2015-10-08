@@ -28,7 +28,7 @@ function hook_liftigniter_templates_alter(&$locations) {
  * @param string $type
  * @param Entity $object
  */
-function hook_liftigniter_meta_alter(&$data, $type, $object) {
+function hook_liftigniter_meta_alter(&$data, $type, $obj, $entity_info)) {
   if ($type === 'node') {
 
     // Simple swapping.

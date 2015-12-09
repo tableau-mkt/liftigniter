@@ -27,8 +27,9 @@
       var config = settings.liftIgniter,
           widgets = (config && config.widgets) ? config.widgets : {},
           langData = (settings.dataLayer) ? settings.dataLayer.languages : {},
+          defaultLang = (settings.dataLayer) ? settings.dataLayer.defaultLang : false,
+          langPrefix = settings.pathPrefix.match(/^\w+-\w+\/$/),
           options = {},
-          langPrefix,
           fetched;
 
       // Add main transform callback, allow external.
@@ -44,34 +45,34 @@
        * @param {object} options
        */
       function widgetRequestRender(key, widget, options) {
-        var configs = Drupal.settings.liftIgniter,
-            transComplete = [];
+        var configs = Drupal.settings.liftIgniter;
 
         $p('register', {
-          max: parseInt(widget.max) || 5,
+          max: parseInt(widget.max, 10) || 5,
           widget: key,
           opts: options,
           callback: function(responseData) {
             var template = $('script#' + listIdPrefix + key).html(),
                 $element = $('div#' + listIdPrefix + key);
 
-            // Things to work with.
+            // Items to work with.
             if ($element.length && responseData.items && responseData.items.length) {
-              // Collect a list of promises.
+              // Perform transformations.
               for (var t in configs.transformCallbacks) {
-                transComplete.push(configs.transformCallbacks[t](responseData, key));
+                configs.transformCallbacks[t](responseData, key);
               }
-              // Allow any number of post-response transforms.
-              $.when.apply($, transComplete).then(function render(data) {
-                // Render the data.
-                $element.css('visibility','hidden');
-                $element.html($p('render', template, data));
-                $element.css('visibility','visible').hide().fadeIn('fast');
 
-              }, function failed() {
-                if (window.console && console.log) {
-                  console.log(Drupal.t('Problem processing liftIgniter data'));
-                }
+              // Render the data.
+              $element.css('visibility','hidden');
+              $element.html($p('render', template, responseData));
+              $element.css('visibility','visible').hide().fadeIn('fast');
+
+              // Add standard tracking. Helps improve quality.
+              $p('track', {
+                elements: document.querySelectorAll('#' + listIdPrefix + key + ' .recommended__item'),
+                name: key,
+                source: 'LI',
+                _debug: false
               });
             }
           }
@@ -85,15 +86,22 @@
         $p('setRequestFieldsAON', true);
       }
 
-      // Setup language option.
-      if (config.useLang && settings.pathPrefix) {
-        langPrefix = settings.pathPrefix.match(/^\w+-\w+\/$/)[0].slice(0, settings.pathPrefix.length -1);
-        // Find language code.
-        for (var lang in langData) {
-          if (langData.hasOwnProperty(lang) && langData[lang].prefix && langData[lang].prefix === langPrefix) {
-            options = {'rule_language': langData[lang].language};
-            break;
+      // Use language options.
+      if (config.useLang) {
+        // Prefix is present.
+        if (langPrefix !== null) {
+          // Find language code.
+          langPrefix = langPrefix[0].slice(0, settings.pathPrefix.length -1);
+          for (var lang in langData) {
+            if (langData.hasOwnProperty(lang) && langData[lang].prefix && langData[lang].prefix === langPrefix) {
+              options = {'rule_language': langData[lang].language};
+              break;
+            }
           }
+        }
+        else if (config.langDefaultNoPrefix && defaultLang) {
+          // Use default language.
+          options = {'rule_language': defaultLang};
         }
       }
 
@@ -106,6 +114,7 @@
 
             // Register widget request and render results.
             widgetRequestRender(widgetKey, widget, options);
+
             // Execute all the registered widgets, possible scroll delay.
             if (typeof $.waypoints !== 'undefined' && config.useWaypoints) {
               $('#' + blockIdPrefix + widgetKey).waypoint(function() {
@@ -129,7 +138,7 @@
      *
      * @return {array}
      */
-    getWidgets: function getWidgets() {
+    getWidgets: function() {
       $p('getWidgetNames', {
         callback: function(widgets) {
           return widgets;
@@ -143,29 +152,15 @@
      * @param {object} data
      * @return {object}
      */
-    basicTransforms: function basicTransforms(data, key) {
-      var def = $.Deferred(),
-          links = data.items,
-          n;
-
+    basicTransforms: function(data, key) {
       // Force current protocol.
       if (Drupal.settings.liftIgniter.forceSameProtocol) {
-        for (n in links) {
-          links[n].url = links[n].url.replace(/http(s*):/, window.location.protocol);
+        for (var i in data.items) {
+          data.items[i].url = data.items[i].url.replace(/http(s*):/, window.location.protocol);
         }
       }
 
       // @todo Add option to force baseUrl.
-
-      // Add analysis params to links.
-      for (n in links) {
-        links[n].url = links[n].url + '?__src=liftigniter&__widget=' + key;
-        // Hand data off to next transform.
-        if (parseInt(n) === links.length - 1) {
-          def.resolve(data);
-        }
-      }
-      return def.promise();
     }
 
   };

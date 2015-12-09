@@ -1,10 +1,10 @@
 <ul class="recommended">
   {{#items}}
-  <li class="recommended_item">
+  <li class="recommended__item">
     <a href="{{url}}">
-      <img class="recommended_thumb" src="{{thumbnail}}">
-      <span class="recommended_title">{{title}}</span>
-      {{#bundle}}<span class="recommended_bundle">{{bundle}}</span>{{/bundle}}
+      <img class="recommended__thumb" src="{{thumbnail}}">
+      <span class="recommended__title">{{ title }}</span>
+      {{#bundle}}<span class="recommended__bundle">{{ bundle }}</span>{{/bundle}}
     </a>
   </li>
   {{/items}}

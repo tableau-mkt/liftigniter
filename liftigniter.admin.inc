@@ -72,6 +72,18 @@ function liftigniter_settings_form($form_state) {
     ),
   );
 
+  $form['liftigniter_lang_default_no_prefix'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('No prefix default language'),
+    '#default_value' => variable_get('liftigniter_lang_default_no_prefix', FALSE),
+    '#description' => t('Request content only in the default site language on pages without a language prefix.'),
+    '#states' => array(
+      'enabled' => array(
+        ':input[name="liftigniter_use_language"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+
   $form['liftigniter_force_same_protocol'] = array(
     '#type' => 'checkbox',
     '#title' => t('Force same protocol'),

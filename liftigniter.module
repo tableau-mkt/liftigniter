@@ -126,9 +126,10 @@ function liftigniter_preprocess_page(&$variables) {
 
   // Add global settings to the page.
   drupal_add_js(array('liftIgniter' => array(
-    'useLang' => variable_get('liftigniter_use_language', TRUE),
     'apiKey' => variable_get('liftigniter_api_key', ''),
     'useWaypoints' => variable_get('liftigniter_waypoints', FALSE),
+    'useLang' => variable_get('liftigniter_use_language', TRUE),
+    'langDefaultNoPrefix' => variable_get('liftigniter_lang_default_no_prefix', FALSE),
     'forceSameProtocol' => variable_get('liftigniter_force_same_protocol', FALSE),
     'transformCallbacks' => array(),
   )),'setting');

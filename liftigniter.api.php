@@ -47,3 +47,16 @@ function hook_liftigniter_meta_alter(&$data, $type, $obj, $entity_info)) {
   $menu_route = menu_get_active_trail();
   $data['menu-parent'] = $menu_route[1]['title'];
 }
+
+
+/**
+ * Set your function as a post-JSON request processor.
+ */
+function hook_preprocess_page(&$variables) {
+  // Transform data after receiving from LiftIgniter.
+  drupal_add_js(array(
+    'liftIgniter' => array(
+      'transformCallback' => 'Drupal.behaviors.my_module.liftIgniter',
+    ), 'setting')
+  );
+}

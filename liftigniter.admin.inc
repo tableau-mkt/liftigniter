@@ -20,20 +20,74 @@ function liftigniter_settings_form($form_state) {
   //   ));
   // }
 
-  $form['liftigniter_api_key'] = array(
+  $form['basic'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Basic'),
+  );
+  $form['basic']['liftigniter_toggle'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Glogal toggle'),
+    '#default_value' => variable_get('liftigniter_toggle', TRUE),
+    '#description' => t('Switch on and off all Lift Igniter output.'),
+  );
+  $form['basic']['liftigniter_api_key'] = array(
     '#type' => 'textfield',
     '#title' => t('Javascript API key'),
+    '#size' => 25,
     '#default_value' => variable_get('liftigniter_api_key', ''),
     '#description' => t('Service API key for use within javascript.'),
   );
+  if (!module_exists('datalayer')) {
+    drupal_set_message(t('DataLayer module not yet avilable for entity meta data output.'), 'warning');
+  }
+  else {
+    $form['basic']['liftigniter_metadata'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Expose meta data'),
+      '#default_value' => variable_get('liftigniter_metadata', TRUE),
+      '#description' => t('Expose page entity meta data (borrowing DataLayer module) to Lift Igniter.'),
+    );
+  }
+  $form['basic']['liftigniter_customer_js_url'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Customer script url'),
+    '#default_value' => variable_get('liftigniter_customer_js_url', FALSE),
+    '#description' => t('Optionally use the custom javascript url for your Lift Igniter account.'),
+  );
+  $form['basic']['liftigniter_widget_blocks'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Avaiable widgets',
+    '#description' => t('List widget names to make available as blocks. Known: '),
+    '#default_value' => variable_get('liftigniter_widget_blocks', LIFTIGNITER_DEFAULT_WIDGET),
+    '#attached' => array('js' => array(
+      array('type' => 'inline', 'data' => _liftigniter_get_script()),
+      drupal_get_path('module', 'liftigniter') . '/liftigniter.js',
+      drupal_get_path('module', 'liftigniter') . '/liftigniter-admin.js',
+    )),
+  );
+
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Options'),
+  );
+
+  $form['options']['liftigniter_max_items'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Max items'),
+    '#size' => 5,
+    '#default_value' => variable_get('liftigniter_max_items', 5),
+    '#description' => t('Number of items displayed in widgets.'),
+  );
+
   if (!libraries_get_path('jquery-waypoints') && !libraries_get_path('waypoints')) {
     drupal_set_message(t(
-      'Avoid recommendation loading until scrolling to the block(s) with the !waypoints library', array(
-        '!waypoints' => l('Waypoints', 'https://github.com/imakewebthings/waypoints')
+      'Avoid recommendation loading until scrolling to the block(s) with the !waypoints library. There is a !module.', array(
+        '!waypoints' => l('Waypoints', 'https://github.com/imakewebthings/waypoints'),
+        '!module' => l('Drupal module', 'https://www.drupal.org/project/waypoints'),
     )), 'warning');
   }
   else {
-    $form['liftigniter_waypoints'] = array(
+    $form['options']['liftigniter_waypoints'] = array(
       '#type' => 'checkbox',
       '#title' => t('Use Waypoints'),
       '#default_value' => variable_get('liftigniter_waypoints', FALSE),
@@ -41,26 +95,7 @@ function liftigniter_settings_form($form_state) {
     );
   }
 
-  if (!module_exists('datalayer')) {
-    drupal_set_message(t('DataLayer module not yet avilable for entity meta data output.'), 'warning');
-  }
-  else {
-    $form['liftigniter_metadata'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Expose meta data'),
-      '#default_value' => variable_get('liftigniter_metadata', FALSE),
-      '#description' => t('Expose page entity meta data (borrowing DataLayer module) to Lift Igniter.'),
-    );
-  }
-
-  $form['liftigniter_max_items'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Max items'),
-    '#default_value' => variable_get('liftigniter_max_items', 5),
-    '#description' => t('Number of items displayed in widgets.'),
-  );
-
-  $form['liftigniter_use_language'] = array(
+  $form['options']['liftigniter_use_language'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use page language'),
     '#default_value' => variable_get('liftigniter_use_language', TRUE),
@@ -72,7 +107,7 @@ function liftigniter_settings_form($form_state) {
     ),
   );
 
-  $form['liftigniter_lang_default_no_prefix'] = array(
+  $form['options']['liftigniter_lang_default_no_prefix'] = array(
     '#type' => 'checkbox',
     '#title' => t('No prefix default language'),
     '#default_value' => variable_get('liftigniter_lang_default_no_prefix', FALSE),
@@ -84,7 +119,7 @@ function liftigniter_settings_form($form_state) {
     ),
   );
 
-  $form['liftigniter_force_same_protocol'] = array(
+  $form['options']['liftigniter_force_same_protocol'] = array(
     '#type' => 'checkbox',
     '#title' => t('Force same protocol'),
     '#default_value' => variable_get('liftigniter_force_same_protocol', FALSE),
@@ -98,18 +133,6 @@ function liftigniter_settings_form($form_state) {
   //   '#default_value' => variable_get('request_fields', ''),
   //   '#description' => t('Custom field list to request from API. Leave blank for defaults.'),
   // );
-
-  $form['liftigniter_widget_blocks'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Avaiable widgets',
-    '#description' => t('List widget names to make available as blocks. Known: '),
-    '#default_value' => variable_get('liftigniter_widget_blocks', LIFTIGNITER_DEFAULT_WIDGET),
-    '#attached' => array('js' => array(
-      array('type' => 'inline', 'data' => _liftigniter_get_script()),
-      drupal_get_path('module', 'liftigniter') . '/liftigniter.js',
-      drupal_get_path('module', 'liftigniter') . '/liftigniter-admin.js',
-    )),
-  );
 
   return system_settings_form($form);
 }

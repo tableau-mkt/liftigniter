@@ -9,7 +9,7 @@
 /* jshint loopfunc:true, forin:false */
 /* globals $p */
 
-(function($) {
+(function($, Drupal) {
 
   var listIdPrefix = 'li-recommendation-',
       blockIdPrefix = 'block-liftigniter-widget-';
@@ -116,7 +116,7 @@
             widgetRequestRender(widgetKey, widget, options);
 
             // Execute all the registered widgets, possible scroll delay.
-            if (typeof $.waypoints !== 'undefined' && config.useWaypoints) {
+            if (typeof $.fn.waypoint !== 'undefined' && config.useWaypoints) {
               $('#' + blockIdPrefix + widgetKey).waypoint(function() {
                 if (!fetched) {
                   $p('fetch');
@@ -165,4 +165,4 @@
 
   };
 
-})(jQuery);
+})(jQuery, Drupal);

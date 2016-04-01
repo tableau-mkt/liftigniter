@@ -61,12 +61,16 @@ function liftigniter_library() {
  * Implements hook_preproess_page().
  */
 function liftigniter_preprocess_page(&$variables) {
+  if (!variable_get('liftigniter_toggle', TRUE)) {
+    return;
+  }
+
   $properties = array(
     'language',
   );
 
   // Just piggy-back/simplify DataLayer entity data colleciton code.
-  if (module_exists('datalayer') && variable_get('liftigniter_metadata', FALSE)) {
+  if (module_exists('datalayer') && variable_get('liftigniter_metadata', TRUE)) {
 
     $type = FALSE;
     $obj = _datalayer_menu_get_any_object($type);
@@ -194,8 +198,8 @@ function liftigniter_block_save($delta, $edit) {
  * @return array
  */
 function liftigniter_block_view($delta = '') {
-  if (!user_access('view liftigniter blocks')) {
-    return false;
+  if (!variable_get('liftigniter_toggle', TRUE) || !user_access('view liftigniter blocks')) {
+    return;
   }
 
   // Keep a running list of all widget blocks being output on the page.
@@ -305,14 +309,16 @@ function _liftigniter_get_template($widget_id) {
 function _liftigniter_get_script() {
   // Assignment test for key set.
   if ($key = variable_get('liftigniter_api_key', FALSE)) {
+    // Customer specific JS URL option.
+    $filename = variable_get('liftigniter_customer_js_url', FALSE) ? $key : 'p';
+    $js_url = 'cdn.petametrics.com/' . $filename . '.js';
 
-    // Note the need for parsing $key but not $p vars.
     return <<<EOD
-(function(w,d,s,p,v,e,r) {w['\$petametrics_var']=v;w[v]=w[v]||function(){(w[v].q=w[v].q||[]).push(arguments)};w[v].l=1*new Date();e=d.createElement(s),r=d.getElementsByTagName(s)[0];e.async=1;e.src=p;r.parentNode.insertBefore(e,r)})(window,document,'script','//cdn.petametrics.com/p.js','\$p');
+(function(w,d,s,p,v,e,r) {w['\$petametrics_var']=v;w[v]=w[v]||function(){(w[v].q=w[v].q||[]).push(arguments)};w[v].l=1*new Date();e=d.createElement(s),r=d.getElementsByTagName(s)[0];e.async=1;e.src=p;r.parentNode.insertBefore(e,r)})(window,document,'script','//$js_url','\$p');
 \$p('init', '$key');
 \$p('send', 'pageview');
 EOD;
-
   }
+
   return '';
 }

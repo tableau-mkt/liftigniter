@@ -1,0 +1,4 @@
+liftigniter:
+  version: 1.0.0
+  js:
+    liftigniter.js: { weight: 0 }

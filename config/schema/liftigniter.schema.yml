@@ -1,0 +1,22 @@
+liftigniter.settings:
+  type: mapping
+  label: Settings
+  mapping:
+    liftigniter_toggle:
+      type: boolean
+    liftigniter_metadata:
+      type: boolean
+    liftigniter_api_key:
+      type: string
+    liftigniter_customer_js_url:
+      type: boolean
+    liftigniter_max_items:
+      type: integer
+    liftigniter_waypoints:
+      type: boolean
+    liftigniter_use_language:
+      type: boolean
+    liftigniter_lang_default_no_prefix:
+      type: boolean
+    liftigniter_force_same_protocol:
+      type: boolean

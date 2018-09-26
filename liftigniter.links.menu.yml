@@ -1,0 +1,5 @@
+liftigniter.settings_form:
+  route_name: liftigniter.settings_form
+  title: LiftIgniter
+  description: 'LiftIgniter, recommendation integration'
+  parent: system.admin_config_services

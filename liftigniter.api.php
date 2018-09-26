@@ -28,7 +28,7 @@ function hook_liftigniter_templates_alter(&$locations) {
  * @param string $type
  * @param Entity $object
  */
-function hook_liftigniter_meta_alter(&$data, $type, $obj, $entity_info)) {
+function hook_liftigniter_meta_alter(&$data, $type, $obj, $entity_info) {
   if ($type === 'node') {
 
     // Simple swapping.
@@ -44,7 +44,16 @@ function hook_liftigniter_meta_alter(&$data, $type, $obj, $entity_info)) {
   }
 
   // Add something.
-  $menu_route = menu_get_active_trail();
+  // @FIXME
+// The active trail system has been removed in Drupal 8 because the routing and
+// linking systems have been completely rewritten. You will need to rewrite this
+// code to use the menu.active_trail service, or override the service if you need
+// to alter the active trail.
+// 
+// 
+// @see https://www.drupal.org/node/2240003
+// $menu_route = menu_get_active_trail();
+
   $data['menu-parent'] = $menu_route[1]['title'];
 }
 
@@ -54,9 +63,17 @@ function hook_liftigniter_meta_alter(&$data, $type, $obj, $entity_info)) {
  */
 function hook_preprocess_page(&$variables) {
   // Transform data after receiving from LiftIgniter.
-  drupal_add_js(array(
-    'liftIgniter' => array(
-      'transformCallback' => 'Drupal.behaviors.my_module.liftIgniter',
-    ), 'setting')
-  );
+  // @FIXME
+// The Assets API has totally changed. CSS, JavaScript, and libraries are now
+// attached directly to render arrays using the #attached property.
+// 
+// 
+// @see https://www.drupal.org/node/2169605
+// @see https://www.drupal.org/node/2408597
+// drupal_add_js(array(
+//     'liftIgniter' => array(
+//       'transformCallback' => 'Drupal.behaviors.my_module.liftIgniter',
+//     ), 'setting')
+//   );
+
 }

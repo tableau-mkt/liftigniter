@@ -9,37 +9,6 @@ define('LIFTIGNITER_TPL_PREFIX',     'liftigniter-');
 define('LIFTIGNITER_TPL_EXT',        '.mst');
 
 /**
- * Implements hook_menu().
- */
-function liftigniter_menu() {
-  return array(
-    'admin/config/services/liftigniter' => array(
-      'title' => 'LiftIgniter',
-      'description' => 'LiftIgniter, recommendation integration',
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('liftigniter_settings_form'),
-      'access arguments' => array('administer site configuration'),
-      'type' => MENU_NORMAL_ITEM,
-      'file' => 'liftigniter.admin.inc',
-    ),
-  );
-}
-
-
-/**
- * Implements hook_permission().
- */
-function liftigniter_permission() {
-  return array(
-    'view liftigniter blocks' => array(
-      'title' => t('View Lift Igniter Blocks'),
-      'description' => t('View the recommendations provided in LiftIgniter blocks.'),
-    ),
-  );
-}
-
-
-/**
  * Implements hook_library().
  */
 function liftigniter_library() {
@@ -58,10 +27,10 @@ function liftigniter_library() {
 
 
 /**
- * Implements hook_preproess_page().
+ * Implements hook_preprocess_page().
  */
 function liftigniter_preprocess_page(&$variables) {
-  if (!variable_get('liftigniter_toggle', TRUE)) {
+  if (!\Drupal::config('liftigniter.settings')->get('liftigniter_toggle')) {
     return;
   }
 
@@ -70,14 +39,14 @@ function liftigniter_preprocess_page(&$variables) {
   );
 
   // Just piggy-back/simplify DataLayer entity data colleciton code.
-  if (module_exists('datalayer') && variable_get('liftigniter_metadata', TRUE)) {
+  if (\Drupal::moduleHandler()->moduleExists('datalayer') && \Drupal::config('liftigniter.settings')->get('liftigniter_metadata')) {
 
     $type = FALSE;
     $obj = _datalayer_menu_get_any_object($type);
     $output_data = array();
 
     if (is_object($obj) && $type) {
-      $entity_info = entity_get_info($type);
+      $entity_info = \Drupal::entityManager()->getDefinition($type);
       $bundle = FALSE;
 
       // Add basic entity details.
@@ -90,9 +59,9 @@ function liftigniter_preprocess_page(&$variables) {
       }
 
       // Entity property addition via hook.
-      foreach (module_implements('liftigniter_meta') as $module) {
+      foreach (\Drupal::moduleHandler()->getImplementations('liftigniter_meta') as $module) {
         // Combine modules implementing hook_liftigniter_meta().
-        $properties = array_merge($properties, module_invoke($module, 'liftigniter_meta'));
+        $properties = array_merge($properties, \Drupal::moduleHandler()->invoke($module, 'liftigniter_meta'));
       }
 
       // Collect data.
@@ -104,13 +73,13 @@ function liftigniter_preprocess_page(&$variables) {
     }
 
     // Allow manual changes.
-    drupal_alter('liftigniter_meta', $output_data, $type, $obj, $entity_info);
+    \Drupal::moduleHandler()->alter('liftigniter_meta', $output_data, $type, $obj, $entity_info);
 
     // Put data on the page.
     drupal_add_html_head(array(
       '#type' => 'html_tag',
       '#tag' => 'script',
-      '#value' => drupal_json_encode($output_data),
+      '#value' => \Drupal\Component\Serialization\Json::encode($output_data),
       '#attributes' => array(
         'type' => 'application/json',
         'id' => 'liftigniter-metadata',
@@ -118,25 +87,41 @@ function liftigniter_preprocess_page(&$variables) {
     );
 
     // Add field list setting to the page.
-    drupal_add_js(array('liftIgniter' => array(
-      'fields' => array_merge($properties, array(
-        'title',
-        'thumbnail',
-        'type',
-        'bundle',
-      )),
-    )), 'setting');
+    // @FIXME
+// The Assets API has totally changed. CSS, JavaScript, and libraries are now
+// attached directly to render arrays using the #attached property.
+//
+//
+// @see https://www.drupal.org/node/2169605
+// @see https://www.drupal.org/node/2408597
+// drupal_add_js(array('liftIgniter' => array(
+//       'fields' => array_merge($properties, array(
+//         'title',
+//         'thumbnail',
+//         'type',
+//         'bundle',
+//       )),
+//     )), 'setting');
+
   }
 
   // Add global settings to the page.
-  drupal_add_js(array('liftIgniter' => array(
-    'apiKey' => variable_get('liftigniter_api_key', ''),
-    'useWaypoints' => variable_get('liftigniter_waypoints', FALSE),
-    'useLang' => variable_get('liftigniter_use_language', TRUE),
-    'langDefaultNoPrefix' => variable_get('liftigniter_lang_default_no_prefix', FALSE),
-    'forceSameProtocol' => variable_get('liftigniter_force_same_protocol', FALSE),
-    'transformCallbacks' => array(),
-  )),'setting');
+  // @FIXME
+// The Assets API has totally changed. CSS, JavaScript, and libraries are now
+// attached directly to render arrays using the #attached property.
+//
+//
+// @see https://www.drupal.org/node/2169605
+// @see https://www.drupal.org/node/2408597
+// drupal_add_js(array('liftIgniter' => array(
+//     'apiKey' => variable_get('liftigniter_api_key', ''),
+//     'useWaypoints' => variable_get('liftigniter_waypoints', FALSE),
+//     'useLang' => variable_get('liftigniter_use_language', TRUE),
+//     'langDefaultNoPrefix' => variable_get('liftigniter_lang_default_no_prefix', FALSE),
+//     'forceSameProtocol' => variable_get('liftigniter_force_same_protocol', FALSE),
+//     'transformCallbacks' => array(),
+//   )),'setting');
+
 }
 
 
@@ -145,8 +130,12 @@ function liftigniter_preprocess_page(&$variables) {
  */
 function liftigniter_block_info() {
   $blocks = array();
-  $widgets = array_map('trim', explode(',',
-    variable_get('liftigniter_widget_blocks', LIFTIGNITER_DEFAULT_WIDGET)
+  // @FIXME
+// Could not extract the default value because it is either indeterminate, or
+// not scalar. You'll need to provide a default value in
+// config/install/liftigniter.settings.yml and config/schema/liftigniter.schema.yml.
+$widgets = array_map('trim', explode(',',
+    \Drupal::config('liftigniter.settings')->get('liftigniter_widget_blocks')
   ));
 
   // Create a block for each widget.
@@ -167,15 +156,20 @@ function liftigniter_block_info() {
  * @param string $delta
  */
 function liftigniter_block_configure($delta) {
-  return array(
-    'liftigniter_max_results' => array(
-      '#type' => 'textfield',
-      '#title' => t('Nuber of results'),
-      '#size' => 10,
-      '#description' => t('Max number of results to display.'),
-      '#default_value' => variable_get('liftigniter_max_results-' . $delta, 5),
-    )
-  );
+  // @FIXME
+// // @FIXME
+// // The correct configuration object could not be determined. You'll need to
+// // rewrite this call manually.
+// return array(
+//     'liftigniter_max_results' => array(
+//       '#type' => 'textfield',
+//       '#title' => t('Nuber of results'),
+//       '#size' => 10,
+//       '#description' => t('Max number of results to display.'),
+//       '#default_value' => variable_get('liftigniter_max_results-' . $delta, 5),
+//     )
+//   );
+
 }
 
 
@@ -186,7 +180,12 @@ function liftigniter_block_configure($delta) {
  * @param array $edit
  */
 function liftigniter_block_save($delta, $edit) {
-  variable_set('liftigniter_max_results-' . $delta, $edit['liftigniter_max_results']);
+  // @FIXME
+// // @FIXME
+// // The correct configuration object could not be determined. You'll need to
+// // rewrite this call manually.
+// variable_set('liftigniter_max_results-' . $delta, $edit['liftigniter_max_results']);
+
 }
 
 
@@ -198,7 +197,7 @@ function liftigniter_block_save($delta, $edit) {
  * @return array
  */
 function liftigniter_block_view($delta = '') {
-  if (!variable_get('liftigniter_toggle', TRUE) || !user_access('view liftigniter blocks')) {
+  if (!\Drupal::config('liftigniter.settings')->get('liftigniter_toggle') || !\Drupal::currentUser()->hasPermission('view liftigniter blocks')) {
     return;
   }
 
@@ -219,9 +218,14 @@ function liftigniter_block_view($delta = '') {
   drupal_add_html_head($template_output, 'liftigniter_template_' . $widget_id);
 
   // Update static variable.
-  $widgets = array($widget_id => array(
-    'max' => variable_get('liftigniter_max_results-' . $delta, 5),
-  )) + $widgets;
+  // @FIXME
+// // @FIXME
+// // The correct configuration object could not be determined. You'll need to
+// // rewrite this call manually.
+// $widgets = array($widget_id => array(
+//     'max' => variable_get('liftigniter_max_results-' . $delta, 5),
+//   )) + $widgets;
+
 
   // Return block render array for DOM placeholder and inject global settings.
   $block = array(
@@ -268,13 +272,13 @@ function _liftigniter_get_template($widget_id) {
   if ($template = &drupal_static(__FUNCTION__ . $widget_id, FALSE)) {
     return $template;
   }
-  if ($cached = cache_get('liftigniter_template_' . $widget_id)) {
+  if ($cached = \Drupal::cache()->get('liftigniter_template_' . $widget_id)) {
     $template = $cached->data;
     return $template;
   }
 
   // Find and open the template file.
-  global $theme;
+  $theme = \Drupal::theme()->getActiveTheme()->getName();
   $theme_path = drupal_get_path('theme', $theme) . '/';
   $locations = array(
     $theme_path . 'templates/' . $widget_id,
@@ -285,19 +289,19 @@ function _liftigniter_get_template($widget_id) {
     drupal_get_path('module', 'liftigniter') . '/default-widget',
   );
   // Allow inserting candidate template locations.
-  drupal_alter('liftigniter_templates', $locations);
+  \Drupal::moduleHandler()->alter('liftigniter_templates', $locations);
 
   // Test until found.
   foreach (array_unique($locations) as $path) {
     if (is_file($path . LIFTIGNITER_TPL_EXT)) {
       // Get, stash and go.
       $template = file_get_contents($path . LIFTIGNITER_TPL_EXT);
-      cache_set('liftigniter_template_' . $widget_id, $template);
+      \Drupal::cache()->set('liftigniter_template_' . $widget_id, $template);
       return $template;
     }
   }
 
-  watchdog('liftigniter', 'LiftIgniter template file missing: @file', array('@file' => $widget_id), WATCHDOG_ERROR);
+  \Drupal::logger('liftigniter')->error('LiftIgniter template file missing: @file', array('@file' => $widget_id));
   return FALSE;
 }
 
@@ -308,9 +312,9 @@ function _liftigniter_get_template($widget_id) {
  */
 function _liftigniter_get_script() {
   // Assignment test for key set.
-  if ($key = variable_get('liftigniter_api_key', FALSE)) {
+  if ($key = \Drupal::config('liftigniter.settings')->get('liftigniter_api_key')) {
     // Customer specific JS URL option.
-    $filename = variable_get('liftigniter_customer_js_url', FALSE) ? $key : 'p';
+    $filename = \Drupal::config('liftigniter.settings')->get('liftigniter_customer_js_url') ? $key : 'p';
     $js_url = 'cdn.petametrics.com/' . $filename . '.js';
 
     return <<<EOD

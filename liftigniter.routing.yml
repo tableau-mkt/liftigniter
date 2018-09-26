@@ -1,0 +1,7 @@
+liftigniter.settings_form:
+  path: /admin/config/services/liftigniter
+  defaults:
+    _title: LiftIgniter
+    _form: \Drupal\liftigniter\Form\LiftigniterSettingsForm
+  requirements:
+    _permission: 'administer site configuration'

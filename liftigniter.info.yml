@@ -1,0 +1,4 @@
+name: LiftIgniter
+description: 'Recommendation service integration.'
+core: 8.x
+type: module

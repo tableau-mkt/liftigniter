@@ -6,29 +6,38 @@ dependencies:
     - block_content.type.liftigniter_widget
     - field.field.block_content.liftigniter_widget.field_liftigniter_max_results
     - field.field.block_content.liftigniter_widget.field_liftigniter_options
+    - field.field.block_content.liftigniter_widget.field_liftigniter_widget_name
 id: block_content.liftigniter_widget.default
 targetEntityType: block_content
 bundle: liftigniter_widget
 mode: default
 content:
   field_liftigniter_max_results:
-    weight: 27
+    weight: 2
     settings:
       placeholder: ''
     third_party_settings: {  }
     type: number
     region: content
   field_liftigniter_options:
-    weight: 28
+    weight: 3
     settings:
       rows: 5
       placeholder: ''
     third_party_settings: {  }
     type: string_textarea
     region: content
+  field_liftigniter_widget_name:
+    weight: 1
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
   info:
     type: string_textfield
-    weight: -5
+    weight: 0
     region: content
     settings:
       size: 60

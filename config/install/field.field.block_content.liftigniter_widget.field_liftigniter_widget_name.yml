@@ -1,0 +1,19 @@
+uuid: b1ec53f4-33b6-4de7-a7a4-8c7e9b401423
+langcode: en
+status: true
+dependencies:
+  config:
+    - block_content.type.liftigniter_widget
+    - field.storage.block_content.field_liftigniter_widget_name
+id: block_content.liftigniter_widget.field_liftigniter_widget_name
+field_name: field_liftigniter_widget_name
+entity_type: block_content
+bundle: liftigniter_widget
+label: 'Widget Name'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

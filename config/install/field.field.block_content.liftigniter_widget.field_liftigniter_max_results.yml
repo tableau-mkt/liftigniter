@@ -1,0 +1,23 @@
+uuid: 69819837-0757-4a37-ab30-e4da0b2d94b4
+langcode: en
+status: true
+dependencies:
+  config:
+    - block_content.type.liftigniter_widget
+    - field.storage.block_content.field_liftigniter_max_results
+id: block_content.liftigniter_widget.field_liftigniter_max_results
+field_name: field_liftigniter_max_results
+entity_type: block_content
+bundle: liftigniter_widget
+label: 'Number of results'
+description: 'Maximum number of results to display.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 0
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

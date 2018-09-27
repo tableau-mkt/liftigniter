@@ -1,0 +1,20 @@
+uuid: 68a172af-d99a-41c1-96a9-6bbd616de048
+langcode: en
+status: true
+dependencies:
+  module:
+    - block_content
+id: block_content.field_liftigniter_max_results
+field_name: field_liftigniter_max_results
+entity_type: block_content
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,8 @@
+uuid: d8e9d3af-f713-4663-9537-d0b724496563
+langcode: en
+status: true
+dependencies: {  }
+id: liftigniter_widget
+label: 'LiftIgniter Widget'
+revision: 0
+description: 'Widgets to display LiftIgniter results.'

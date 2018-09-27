@@ -1,0 +1,30 @@
+uuid: 738dbd65-a814-49fb-aaf4-c7c9688b63fa
+langcode: en
+status: true
+dependencies:
+  config:
+    - block_content.type.liftigniter_widget
+    - field.field.block_content.liftigniter_widget.field_liftigniter_max_results
+    - field.field.block_content.liftigniter_widget.field_liftigniter_options
+id: block_content.liftigniter_widget.default
+targetEntityType: block_content
+bundle: liftigniter_widget
+mode: default
+content:
+  field_liftigniter_max_results:
+    weight: 1
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    type: number_integer
+    region: content
+  field_liftigniter_options:
+    weight: 2
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: basic_string
+    region: content
+hidden: {  }

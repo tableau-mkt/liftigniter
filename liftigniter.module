@@ -251,6 +251,7 @@ function liftigniter_block_view($delta = '') {
  */
 function _liftigniter_get_template($widget_id) {
   // Check static or cached version. NOTE: Assignment test.
+  // @FIXME Update caching.
   if ($template = &drupal_static(__FUNCTION__ . $widget_id, FALSE)) {
     return $template;
   }

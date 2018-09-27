@@ -60,7 +60,7 @@ function liftigniter_settings_form($form_state) {
 // config/install/liftigniter.settings.yml and config/schema/liftigniter.schema.yml.
 $form['basic']['liftigniter_widget_blocks'] = array(
     '#type' => 'textfield',
-    '#title' => 'Avaiable widgets',
+    '#title' => 'Available widgets',
     '#description' => t('List widget names to make available as blocks. Known: '),
     '#default_value' => \Drupal::config('liftigniter.settings')->get('liftigniter_widget_blocks'),
     '#attached' => array('js' => array(

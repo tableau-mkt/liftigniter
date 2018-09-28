@@ -4,6 +4,8 @@
  */
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\node\NodeInterface;
 
 define('LIFTIGNITER_DEFAULT_WIDGET', 'default-widget');
 define('LIFTIGNITER_LIST_PREFIX',    'li-recommendation-');
@@ -76,18 +78,18 @@ function liftigniter_preprocess_page(&$variables) {
  */
 function liftigniter_get_metadata() {
   $entity = _datalayer_menu_get_any_object();
-  $type = $entity->getEntityType()->id();
+  $type = $entity->getEntityTypeID();
 
-  $properties = ['language'];
+  $properties = ['langcode'];
 
   $metadata = [];
 
-  if (is_object($entity) && $type) {
+  if ($entity instanceof EntityInterface && $type) {
     // Add basic entity details.
     $metadata['type'] = $type;
     $metadata['bundle'] = $entity->type->entity->label();
     $metadata['uuid'] = $entity->uuid();
-    if ($type == 'node') {
+    if ($entity instanceof NodeInterface) {
       $metadata['nid'] = $entity->id();
     }
 
@@ -98,15 +100,15 @@ function liftigniter_get_metadata() {
     }
 
     // Collect data.
-    foreach ($properties as $property) {
-      if (isset($entity->$property)) {
-        $properties[$property] = $entity->$property;
+    foreach ($properties as $key => $property) {
+      if ($entity->hasField($property)) {
+        $properties[$property] = $entity->get($property)->value;
+        unset($properties[$key]);
       }
     }
   }
-
   // Allow manual changes.
-  \Drupal::moduleHandler()->alter('liftigniter_meta', $output_data, $type, $entity, $entity_info);
+  \Drupal::moduleHandler()->alter('liftigniter_meta', $metadata, $type, $entity);
 
   return array(
     'metadata' => $metadata,

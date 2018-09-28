@@ -3,6 +3,8 @@
  * @file LiftIgniter, recommendation service integration.
  */
 
+use Drupal\Component\Serialization\Json;
+
 define('LIFTIGNITER_DEFAULT_WIDGET', 'default-widget');
 define('LIFTIGNITER_LIST_PREFIX',    'li-recommendation-');
 define('LIFTIGNITER_TPL_PREFIX',     'liftigniter-');
@@ -12,164 +14,105 @@ define('LIFTIGNITER_TPL_EXT',        '.mst');
  * Implements hook_preprocess_page().
  */
 function liftigniter_preprocess_page(&$variables) {
-  if (!\Drupal::config('liftigniter.settings')->get('liftigniter_toggle')) {
+  $config = \Drupal::config('liftigniter.settings');
+  if (!$config->get('liftigniter_toggle')) {
     return;
   }
 
-  $properties = array(
-    'language',
-  );
+  $js_settings = [];
 
   // Just piggy-back/simplify DataLayer entity data colleciton code.
-  if (\Drupal::moduleHandler()->moduleExists('datalayer') && \Drupal::config('liftigniter.settings')->get('liftigniter_metadata')) {
+  if (\Drupal::moduleHandler()->moduleExists('datalayer') && $config->get('liftigniter_metadata')) {
 
-    $type = FALSE;
-    $obj = _datalayer_menu_get_any_object($type);
-    $output_data = array();
-
-    if (is_object($obj) && $type) {
-      $entity_info = \Drupal::entityManager()->getDefinition($type);
-      $bundle = FALSE;
-
-      // Add basic entity details.
-      $output_data['type'] = $type;
-      if (isset($obj->{$entity_info['entity keys']['bundle']})) {
-        // Find how bundles are accessed before looking.
-        $bundle = $obj->{$entity_info['entity keys']['bundle']};
-        // Use nice label.
-        $output_data['bundle'] = $entity_info['bundles'][$bundle]['label'];
-      }
-
-      // Entity property addition via hook.
-      foreach (\Drupal::moduleHandler()->getImplementations('liftigniter_meta') as $module) {
-        // Combine modules implementing hook_liftigniter_meta().
-        $properties = array_merge($properties, \Drupal::moduleHandler()->invoke($module, 'liftigniter_meta'));
-      }
-
-      // Collect data.
-      foreach ($properties as $p) {
-        if (isset($obj->$p)) {
-          $output_data[$p] = $obj->$p;
-        }
-      }
-    }
-
-    // Allow manual changes.
-    \Drupal::moduleHandler()->alter('liftigniter_meta', $output_data, $type, $obj, $entity_info);
+    // Load the metadata.
+    $result = liftigniter_get_metadata();
 
     // Put data on the page.
-    drupal_add_html_head(array(
+    $html_head = [
       '#type' => 'html_tag',
       '#tag' => 'script',
-      '#value' => \Drupal\Component\Serialization\Json::encode($output_data),
-      '#attributes' => array(
+      '#value' => Json::encode($result['metadata']),
+      '#attributes' => [
         'type' => 'application/json',
         'id' => 'liftigniter-metadata',
-      )), 'liftigniter_metadata'
-    );
+      ]
+    ];
+    $variables['#attached']['html_head'][] = [$html_head, 'liftigniter-metadata'];
 
-    // Add field list setting to the page.
-    // @FIXME
-// The Assets API has totally changed. CSS, JavaScript, and libraries are now
-// attached directly to render arrays using the #attached property.
-//
-//
-// @see https://www.drupal.org/node/2169605
-// @see https://www.drupal.org/node/2408597
-// drupal_add_js(array('liftIgniter' => array(
-//       'fields' => array_merge($properties, array(
-//         'title',
-//         'thumbnail',
-//         'type',
-//         'bundle',
-//       )),
-//     )), 'setting');
-
+    // Create field list settings for the page.
+    $js_settings = [
+      'fields' => array_merge($result['properties'], [
+        'title',
+        'thumbnail',
+        'type',
+        'bundle',
+      ]),
+    ];
   }
 
-  // Add global settings to the page.
-  // @FIXME
-// The Assets API has totally changed. CSS, JavaScript, and libraries are now
-// attached directly to render arrays using the #attached property.
-//
-//
-// @see https://www.drupal.org/node/2169605
-// @see https://www.drupal.org/node/2408597
-// drupal_add_js(array('liftIgniter' => array(
-//     'apiKey' => variable_get('liftigniter_api_key', ''),
-//     'useWaypoints' => variable_get('liftigniter_waypoints', FALSE),
-//     'useLang' => variable_get('liftigniter_use_language', TRUE),
-//     'langDefaultNoPrefix' => variable_get('liftigniter_lang_default_no_prefix', FALSE),
-//     'forceSameProtocol' => variable_get('liftigniter_force_same_protocol', FALSE),
-//     'transformCallbacks' => array(),
-//   )),'setting');
+  // Create global settings array for the page.
+  $js_global_settings = [
+    'apiKey' =>  $config->get('liftigniter_api_key'),
+    'useWaypoints' => $config->get('liftigniter_waypoints'),
+    'useLang' => $config->get('liftigniter_use_language'),
+    'langDefaultNoPrefix' => $config->get('liftigniter_lang_default_no_prefix'),
+    'forceSameProtocol' => $config->get('liftigniter_force_same_protocol'),
+    'transformCallbacks' => [],
+  ];
+  // Add the settings to the page.
+  $variables['#attached']['drupalSettings']['liftIgniter'] = $js_global_settings + $js_settings;
 
 }
 
-
 /**
- * Implements hook_block_info().
+ * Loads the metadata for a given entity object.
+ *
+ * @param $type
+ *  The type of the entity.
+ * @param $entity
+ *  The entity itself.
+ *
+ * @return array
  */
-function liftigniter_block_info() {
-  $blocks = array();
-  // @FIXME
-// Could not extract the default value because it is either indeterminate, or
-// not scalar. You'll need to provide a default value in
-// config/install/liftigniter.settings.yml and config/schema/liftigniter.schema.yml.
-$widgets = array_map('trim', explode(',',
-    \Drupal::config('liftigniter.settings')->get('liftigniter_widget_blocks')
-  ));
+function liftigniter_get_metadata() {
+  $entity = _datalayer_menu_get_any_object();
+  $type = $entity->getEntityType()->id();
 
-  // Create a block for each widget.
-  foreach ($widgets as $delta) {
-    $blocks['widget_' . $delta] = array(
-      'info' => t('LiftIgniter: ' . $delta),
-      'cache' => DRUPAL_NO_CACHE,
-    );
+  $properties = ['language'];
+
+  $metadata = [];
+
+  if (is_object($entity) && $type) {
+    // Add basic entity details.
+    $metadata['type'] = $type;
+    $metadata['bundle'] = $entity->type->entity->label();
+    $metadata['uuid'] = $entity->uuid();
+    if ($type == 'node') {
+      $metadata['nid'] = $entity->id();
+    }
+
+    // Entity property addition via hook.
+    foreach (\Drupal::moduleHandler()->getImplementations('liftigniter_meta') as $module) {
+      // Combine modules implementing hook_liftigniter_meta().
+      $properties = array_merge($properties, \Drupal::moduleHandler()->invoke($module, 'liftigniter_meta'));
+    }
+
+    // Collect data.
+    foreach ($properties as $property) {
+      if (isset($entity->$property)) {
+        $properties[$property] = $entity->$property;
+      }
+    }
   }
 
-  return $blocks;
+  // Allow manual changes.
+  \Drupal::moduleHandler()->alter('liftigniter_meta', $output_data, $type, $entity, $entity_info);
+
+  return array(
+    'metadata' => $metadata,
+    'properties' => $properties,
+  );
 }
-
-
-/**
- * Implements hook_block_configure().
- *
- * @param string $delta
- */
-function liftigniter_block_configure($delta) {
-  // @FIXME
-// // @FIXME
-// // The correct configuration object could not be determined. You'll need to
-// // rewrite this call manually.
-// return array(
-//     'liftigniter_max_results' => array(
-//       '#type' => 'textfield',
-//       '#title' => t('Nuber of results'),
-//       '#size' => 10,
-//       '#description' => t('Max number of results to display.'),
-//       '#default_value' => variable_get('liftigniter_max_results-' . $delta, 5),
-//     )
-//   );
-
-}
-
-
-/**
- * Implements hook_block_save().
- *
- * @param string $delta
- * @param array $edit
- */
-function liftigniter_block_save($delta, $edit) {
-  // @FIXME
-// // @FIXME
-// // The correct configuration object could not be determined. You'll need to
-// // rewrite this call manually.
-// variable_set('liftigniter_max_results-' . $delta, $edit['liftigniter_max_results']);
-
-}
-
 
 /**
  * Implements hook_block_view().

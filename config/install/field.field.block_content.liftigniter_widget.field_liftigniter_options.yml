@@ -10,7 +10,7 @@ field_name: field_liftigniter_options
 entity_type: block_content
 bundle: liftigniter_widget
 label: Options
-description: ''
+description: 'JSON Object'
 required: false
 translatable: false
 default_value: {  }

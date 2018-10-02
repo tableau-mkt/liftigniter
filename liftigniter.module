@@ -79,7 +79,7 @@ function liftigniter_preprocess_page(&$variables) {
 function liftigniter_get_metadata() {
   $entity = _datalayer_menu_get_any_object();
 
-  $properties = ['langcode'];
+  $properties = ['language'];
 
   $metadata = [];
 
@@ -88,10 +88,11 @@ function liftigniter_get_metadata() {
     // Add basic entity details.
     $metadata['type'] = $type;
     $metadata['bundle'] = $entity->type->entity->label();
-    $metadata['uuid'] = $entity->uuid();
     if ($entity instanceof NodeInterface) {
       $metadata['nid'] = $entity->id();
     }
+    // Adding UUID because it might be useful in the long run.
+    $metadata['uuid'] = $entity->uuid();
 
     // Entity property addition via hook.
     foreach (\Drupal::moduleHandler()->getImplementations('liftigniter_meta') as $module) {
@@ -102,7 +103,7 @@ function liftigniter_get_metadata() {
     // Collect data.
     foreach ($properties as $key => $property) {
       if ($entity->hasField($property)) {
-        $properties[$property] = $entity->get($property)->value;
+        $properties[$property] = $property;
         unset($properties[$key]);
       }
     }

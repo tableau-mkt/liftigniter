@@ -78,13 +78,13 @@ function liftigniter_preprocess_page(&$variables) {
  */
 function liftigniter_get_metadata() {
   $entity = _datalayer_menu_get_any_object();
-  $type = $entity->getEntityTypeID();
 
   $properties = ['langcode'];
 
   $metadata = [];
 
-  if ($entity instanceof EntityInterface && $type) {
+  if ($entity instanceof EntityInterface) {
+    $type = $entity->getEntityTypeID();
     // Add basic entity details.
     $metadata['type'] = $type;
     $metadata['bundle'] = $entity->type->entity->label();

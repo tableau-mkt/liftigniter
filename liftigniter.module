@@ -195,8 +195,6 @@ function liftigniter_block_view_block_content_alter(array &$build, BlockPluginIn
     // $build['content']['#attached']['library'][] = $waypoints;
   }
 
-  dpm($build['content']['#attached']);
-  return $build;
 }
 
 

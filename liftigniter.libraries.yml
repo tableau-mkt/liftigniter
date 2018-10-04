@@ -1,4 +1,8 @@
-liftigniter:
+liftIgniter:
   version: 1.0.0
   js:
-    liftigniter.js: { weight: 0 }
+    js/liftigniter-tracking-beacon.js: { weight: 0 }
+    # js/liftigniter-widget-request.js: { weight: 0 }
+  dependencies:
+    - core/jquery
+    - core/drupalSettings

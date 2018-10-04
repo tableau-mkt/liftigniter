@@ -7,7 +7,6 @@
  * Drupal manner.
  */
 
-
 /**
  * Alter template suggestions before it's output for client-side rendering.
  *
@@ -19,7 +18,6 @@ function hook_liftigniter_templates_alter(&$locations) {
   // Add your module to the front of the list of template locations.
   array_unshift($locations, drupal_get_path('module', 'my_module') . '/templates');
 }
-
 
 /**
  * Adjust meta data sent to LiftIgniter.
@@ -44,7 +42,6 @@ function hook_liftigniter_meta_alter(&$data, $type, $entity) {
   }
 
 }
-
 
 /**
  * Set your function as a post-JSON request processor.

@@ -17,7 +17,7 @@
   /**
    * Page load behavior.
    */
-  Drupal.behaviors.liftIgniter = {
+  drupalSettings.liftIgniter = {
     attach: function liftIgniter(context, settings) {
       // Ajax protection.
       if (context !== document) {
@@ -34,7 +34,7 @@
 
       // Add main transform callback, allow external.
       settings.liftIgniter.transformCallbacks.push(
-        Drupal.behaviors.liftIgniter.basicTransforms
+        drupalSettings.liftIgniter.basicTransforms
       );
 
       /**
@@ -45,7 +45,7 @@
        * @param {object} options
        */
       function widgetRequestRender(key, widget, options) {
-        var configs = Drupal.settings.liftIgniter;
+        var configs = drupalSettings.liftIgniter;
 
         $p('register', {
           max: parseInt(widget.max, 10) || 5,
@@ -154,7 +154,7 @@
      */
     basicTransforms: function(data, key) {
       // Force current protocol.
-      if (Drupal.settings.liftIgniter.forceSameProtocol) {
+      if (drupalSettings.liftIgniter.forceSameProtocol) {
         for (var i in data.items) {
           data.items[i].url = data.items[i].url.replace(/http(s*):/, window.location.protocol);
         }

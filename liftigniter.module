@@ -4,12 +4,11 @@
  */
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\node\NodeInterface;
 
-define('LIFTIGNITER_DEFAULT_WIDGET', 'default-widget');
 define('LIFTIGNITER_LIST_PREFIX',    'li-recommendation-');
-define('LIFTIGNITER_TPL_PREFIX',     'liftigniter-');
 define('LIFTIGNITER_TPL_EXT',        '.mst');
 
 /**
@@ -53,8 +52,12 @@ function liftigniter_preprocess_page(&$variables) {
   }
 
   // Create global settings array for the page.
+  $api_key = $config->get('liftigniter_api_key');
+  $filename = $config->get('liftigniter_customer_js_url') ? $api_key : 'p';
+  $js_url = 'cdn.petametrics.com/' . $filename . '.js';
   $js_global_settings = [
-    'apiKey' =>  $config->get('liftigniter_api_key'),
+    'apiKey' => $api_key,
+    'jsURL' => $js_url,
     'useWaypoints' => $config->get('liftigniter_waypoints'),
     'useLang' => $config->get('liftigniter_use_language'),
     'langDefaultNoPrefix' => $config->get('liftigniter_lang_default_no_prefix'),
@@ -111,67 +114,74 @@ function liftigniter_get_metadata() {
   // Allow manual changes.
   \Drupal::moduleHandler()->alter('liftigniter_meta', $metadata, $type, $entity);
 
-  return array(
+  return [
     'metadata' => $metadata,
     'properties' => $properties,
-  );
+  ];
 }
 
 /**
- * Implements hook_block_view().
+ * Implements hook_block_view_BASE_BLOCK_ID_alter().
  *
- * @param string $delta
+ * @param array &$build
+ * @param \Drupal\Core\Block\BlockPluginInterface $block
  *
  * @return array
  */
-function liftigniter_block_view($delta = '') {
+function liftigniter_block_view_block_content_alter(array &$build, BlockPluginInterface $block) {
   if (!\Drupal::config('liftigniter.settings')->get('liftigniter_toggle') || !\Drupal::currentUser()->hasPermission('view liftigniter blocks')) {
     return;
   }
 
-  // Keep a running list of all widget blocks being output on the page.
-  $widgets = &drupal_static(__FUNCTION__, array());
-  $widget_id = preg_replace('/^widget_/', '', $delta);
+  // Get the block_content type.
+  // @TODO: Figure out a more direct way to get the type.
+  $uuid = $block->getDerivativeId();
+  $custom_block = \Drupal::service('entity.repository')->loadEntityByUuid('block_content', $uuid);
+  $type = $custom_block->get('type')->getString();
+  if ($type != 'liftigniter_widget') {
+    return;
+  }
+
+  // Set the widget_id.
+  $widget_id = preg_replace('/^widget_/', '', $build['#id']);
+
+  // Get running list of all widget blocks being output on the page.
+  $widgets = &drupal_static(__FUNCTION__, []);
+
+  // Update static variable.
+  $widgets[] = $widget_id;
 
   // Place mustache template in the head.
-  $template_output = array(
+  $template_output = [
     '#type' => 'html_tag',
     '#tag' => 'script',
     '#value' => "\r\n" . _liftigniter_get_template($widget_id),
-    '#attributes' => array(
+    '#attributes' => [
       'type' => 'application/mustache',
       'id' => LIFTIGNITER_LIST_PREFIX . $widget_id,
-    ),
-  );
-  drupal_add_html_head($template_output, 'liftigniter_template_' . $widget_id);
-
-  // Update static variable.
-  // @FIXME
-// // @FIXME
-// // The correct configuration object could not be determined. You'll need to
-// // rewrite this call manually.
-// $widgets = array($widget_id => array(
-//     'max' => variable_get('liftigniter_max_results-' . $delta, 5),
-//   )) + $widgets;
+    ],
+  ];
+  $build['#attached']['html_head'][] = [$template_output, 'liftigniter_template_' . $widget_id];
 
 
-  // Return block render array for DOM placeholder and inject global settings.
-  $block = array(
-    'subject' => t('Recommended'),
-    'content' => array(
-      '#markup' => '<div id="' . LIFTIGNITER_LIST_PREFIX . $widget_id . '"></div>',
-      '#attached' => array(
-        'js' => array(
-          array('type' => 'setting', 'data' => array('liftIgniter' => array(
-            'widgets' => $widgets,
-          ))),
-          // @todo Self-hosted script option.
-          array('type' => 'inline', 'data' => _liftigniter_get_script()),
-          drupal_get_path('module', 'liftigniter') . '/liftigniter.js',
-        ),
-      ),
-    ),
-  );
+  // Override prerender to customize block render array for DOM placeholder and
+  // inject global settings.
+  $build['#configuration']['label'] = t('Recommended');
+  $build['#pre_render'] = [];
+  $build['content'] = [
+    '#markup' => '<div id="' . LIFTIGNITER_LIST_PREFIX . $widget_id . '"></div>',
+    '#attached' => [
+      'drupalSettings' => [
+        'liftIgniter' => [
+          'widgets' => $widgets,
+        ],
+      ],
+    ],
+  ];
+  // Add Liftigniter beacon and custom scripts once.
+  if (count($widgets) === 1) {
+    $build['content']['#attached']['library'][] = 'liftigniter/liftIgniter';
+  }
 
   // Delay front-end API requests. Allow different library names.
   $waypoints = FALSE;
@@ -182,10 +192,11 @@ function liftigniter_block_view($delta = '') {
     $waypoints = 'waypoints';
   }
   if ($waypoints) {
-    $block['#attached']['library'][] = $waypoints;
+    // $build['content']['#attached']['library'][] = $waypoints;
   }
 
-  return $block;
+  dpm($build['content']['#attached']);
+  return $build;
 }
 
 
@@ -209,14 +220,14 @@ function _liftigniter_get_template($widget_id) {
   // Find and open the template file.
   $theme = \Drupal::theme()->getActiveTheme()->getName();
   $theme_path = drupal_get_path('theme', $theme) . '/';
-  $locations = array(
+  $locations = [
     $theme_path . 'templates/' . $widget_id,
     $theme_path . 'templates/default-widget',
     $theme_path . $widget_id,
     $theme_path . 'default-widget',
     drupal_get_path('module', 'liftigniter') . '/' . $widget_id,
     drupal_get_path('module', 'liftigniter') . '/default-widget',
-  );
+  ];
   // Allow inserting candidate template locations.
   \Drupal::moduleHandler()->alter('liftigniter_templates', $locations);
 
@@ -230,7 +241,7 @@ function _liftigniter_get_template($widget_id) {
     }
   }
 
-  \Drupal::logger('liftigniter')->error('LiftIgniter template file missing: @file', array('@file' => $widget_id));
+  \Drupal::logger('liftigniter')->error('LiftIgniter template file missing: @file', ['@file' => $widget_id]);
   return FALSE;
 }
 

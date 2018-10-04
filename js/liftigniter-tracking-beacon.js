@@ -9,13 +9,6 @@
 /* jshint loopfunc:true, forin:false */
 /* globals $p */
 
-// (function(w,d,s,p,v,e,r) {w['\$petametrics_var']=v;w[v]=w[v]||function(){(w[v].q=w[v].q||[]).push(arguments)};w[v].l=1*new Date();e=d.createElement(s),r=d.getElementsByTagName(s)[0];
-//   e.async=1;
-//   e.src=p;
-//   r.parentNode.insertBefore(e,r)})(window,document,'script','//$js_url','$p');
-// $p('init', drupalSettings.liftIgniter.apiKey);
-// $p('send', 'pageview');
-
 if (typeof $igniter_var === 'undefined') {
   // Ensures that our client code is updated.
   (function(w,d,s,p,v,e,r) {"use strict";w.$ps = (w.performance && w.performance.now && typeof(w.performance.now) == "function") ? w.performance.now() : undefined;

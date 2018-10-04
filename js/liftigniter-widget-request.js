@@ -10,30 +10,29 @@
 /* globals $p */
 
 (function($, Drupal) {
-
   var listIdPrefix = 'li-recommendation-',
       blockIdPrefix = 'block-liftigniter-widget-';
 
   /**
    * Page load behavior.
    */
-  drupalSettings.liftIgniter = {
+  Drupal.behaviors.liftIgniter = {
     attach: function liftIgniter(context, settings) {
       // Ajax protection.
       if (context !== document) {
         return;
       }
 
-      var config = settings.liftIgniter,
-          widgets = (config && config.widgets) ? config.widgets : {},
-          langData = (settings.dataLayer) ? settings.dataLayer.languages : {},
-          defaultLang = (settings.dataLayer) ? settings.dataLayer.defaultLang : false,
-          langPrefix = settings.pathPrefix.match(/^\w+-\w+\/$/),
-          options = {},
-          fetched;
+      var config = drupalSettings.liftIgniter,
+        widgets = (config && config.widgets) ? config.widgets : {},
+        langData = (drupalSettings.dataLayer) ? drupalSettings.dataLayer.languages : {},
+        defaultLang = (drupalSettings.dataLayer) ? drupalSettings.dataLayer.defaultLang : false,
+        langPrefix = drupalSettings.path.pathPrefix.match(/^\w+-\w+\/$/),
+        options = {},
+        fetched;
 
       // Add main transform callback, allow external.
-      settings.liftIgniter.transformCallbacks.push(
+      drupalSettings.liftIgniter.transformCallbacks.push(
         drupalSettings.liftIgniter.basicTransforms
       );
 
@@ -91,7 +90,7 @@
         // Prefix is present.
         if (langPrefix !== null) {
           // Find language code.
-          langPrefix = langPrefix[0].slice(0, settings.pathPrefix.length -1);
+          langPrefix = langPrefix[0].slice(0, drupalSettings.path.pathPrefix.length -1);
           for (var lang in langData) {
             if (langData.hasOwnProperty(lang) && langData[lang].prefix && langData[lang].prefix === langPrefix) {
               options = {'rule_language': langData[lang].language};

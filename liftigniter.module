@@ -177,14 +177,14 @@ function liftigniter_block_view_block_content_alter(array &$build, BlockPluginIn
 
   // Delay front-end API requests. Allow different library names.
   $waypoints = FALSE;
-  if (libraries_get_path('jquery-waypoints')) {
+  if (function_exists('libraries_get_path') && libraries_get_path('jquery-waypoints')) {
     $waypoints = 'jquery-waypoints';
   }
-  if (libraries_get_path('waypoints')) {
+  if (function_exists('libraries_get_path') && libraries_get_path('waypoints')) {
     $waypoints = 'waypoints';
   }
   if ($waypoints) {
-    // $build['content']['#attached']['library'][] = $waypoints;.
+    $build['content']['#attached']['library'][] = $waypoints;
   }
 
 }

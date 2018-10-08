@@ -1,6 +1,8 @@
 <?php
+
 /**
- * @file LiftIgniter, recommendation service integration.
+ * @file
+ * LiftIgniter, recommendation service integration.
  */
 
 use Drupal\Component\Serialization\Json;
@@ -8,8 +10,8 @@ use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\node\NodeInterface;
 
-define('LIFTIGNITER_LIST_PREFIX',    'li-recommendation-');
-define('LIFTIGNITER_TPL_EXT',        '.mst');
+define('LIFTIGNITER_LIST_PREFIX', 'li-recommendation-');
+define('LIFTIGNITER_TPL_EXT', '.mst');
 
 /**
  * Implements hook_preprocess_page().
@@ -36,7 +38,7 @@ function liftigniter_preprocess_page(&$variables) {
       '#attributes' => [
         'type' => 'application/json',
         'id' => 'liftigniter-metadata',
-      ]
+      ],
     ];
     $variables['#attached']['html_head'][] = [$html_head, 'liftigniter-metadata'];
 
@@ -72,12 +74,8 @@ function liftigniter_preprocess_page(&$variables) {
 /**
  * Loads the metadata for a given entity object.
  *
- * @param $type
- *  The type of the entity.
- * @param $entity
- *  The entity itself.
- *
  * @return array
+ *   Entity metadata and properties.
  */
 function liftigniter_get_metadata() {
   $entity = _datalayer_menu_get_any_object();
@@ -122,11 +120,6 @@ function liftigniter_get_metadata() {
 
 /**
  * Implements hook_block_view_BASE_BLOCK_ID_alter().
- *
- * @param array &$build
- * @param \Drupal\Core\Block\BlockPluginInterface $block
- *
- * @return array
  */
 function liftigniter_block_view_block_content_alter(array &$build, BlockPluginInterface $block) {
   if (!\Drupal::config('liftigniter.settings')->get('liftigniter_toggle') || !\Drupal::currentUser()->hasPermission('view liftigniter blocks')) {
@@ -163,7 +156,6 @@ function liftigniter_block_view_block_content_alter(array &$build, BlockPluginIn
   ];
   $build['#attached']['html_head'][] = [$template_output, 'liftigniter_template_' . $widget_id];
 
-
   // Override prerender to customize block render array for DOM placeholder and
   // inject global settings.
   $build['#configuration']['label'] = t('Recommended');
@@ -192,11 +184,10 @@ function liftigniter_block_view_block_content_alter(array &$build, BlockPluginIn
     $waypoints = 'waypoints';
   }
   if ($waypoints) {
-    // $build['content']['#attached']['library'][] = $waypoints;
+    // $build['content']['#attached']['library'][] = $waypoints;.
   }
 
 }
-
 
 /**
  * Discover which template file to use.
@@ -241,26 +232,4 @@ function _liftigniter_get_template($widget_id) {
 
   \Drupal::logger('liftigniter')->error('LiftIgniter template file missing: @file', ['@file' => $widget_id]);
   return FALSE;
-}
-
-
-/**
- * Return the embed code with key inserted.
- * @return string
- */
-function _liftigniter_get_script() {
-  // Assignment test for key set.
-  if ($key = \Drupal::config('liftigniter.settings')->get('liftigniter_api_key')) {
-    // Customer specific JS URL option.
-    $filename = \Drupal::config('liftigniter.settings')->get('liftigniter_customer_js_url') ? $key : 'p';
-    $js_url = 'cdn.petametrics.com/' . $filename . '.js';
-
-    return <<<EOD
-(function(w,d,s,p,v,e,r) {w['\$petametrics_var']=v;w[v]=w[v]||function(){(w[v].q=w[v].q||[]).push(arguments)};w[v].l=1*new Date();e=d.createElement(s),r=d.getElementsByTagName(s)[0];e.async=1;e.src=p;r.parentNode.insertBefore(e,r)})(window,document,'script','//$js_url','\$p');
-\$p('init', '$key');
-\$p('send', 'pageview');
-EOD;
-  }
-
-  return '';
 }

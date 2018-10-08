@@ -1,18 +1,15 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\liftigniter\Form\LiftigniterSettingsForm.
- */
-
 namespace Drupal\liftigniter\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Render\Element;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+/**
+ * Implements the LiftIgniter settings form controller.
+ */
 class LiftigniterSettingsForm extends ConfigFormBase {
 
   /**
@@ -48,6 +45,17 @@ class LiftigniterSettingsForm extends ConfigFormBase {
     return ['liftigniter.settings'];
   }
 
+  /**
+   * Build the settings form.
+   *
+   * @param array $form
+   *   Default form array structure.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   Object containing current form state.
+   *
+   * @return array
+   *   The render array defining the elements of the form.
+   */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('liftigniter.settings');
     $form = [];
@@ -102,7 +110,7 @@ class LiftigniterSettingsForm extends ConfigFormBase {
       '#description' => t('Number of items displayed in widgets.'),
     ];
 
-    $waypoints_disabled =!\Drupal::moduleHandler()->moduleExists('waypoints');
+    $waypoints_disabled = !\Drupal::moduleHandler()->moduleExists('waypoints');
     $form['options']['liftigniter_waypoints'] = [
       '#type' => 'checkbox',
       '#title' => t('Use Waypoints'),
@@ -122,9 +130,9 @@ class LiftigniterSettingsForm extends ConfigFormBase {
       '#states' => [
         'visible' => [
           ':input[name="liftigniter_metadata"]' => [
-            'checked' => TRUE
-          ]
-        ]
+            'checked' => TRUE,
+          ],
+        ],
       ],
     ];
 
@@ -138,8 +146,8 @@ class LiftigniterSettingsForm extends ConfigFormBase {
           ':input[name="liftigniter_use_language"]' => [
             'checked' => TRUE,
             'visible' => TRUE,
-          ]
-        ]
+          ],
+        ],
       ],
     ];
 

@@ -1,6 +1,8 @@
 <?php
+
 /**
- * @file Code documentation for the LiftIgniter module.
+ * @file
+ * Code documentation for the LiftIgniter module.
  *
  * This file contains no working PHP code; it exists to provide additional
  * documentation for doxygen as well as to document hooks in the standard
@@ -12,7 +14,7 @@
  *
  * Place your templates at:
  * /sites/all/modules/my_module/templates/liftigniter-default.mst
- * /sites/all/modules/my_module/templates/liftigniter-my-widget.mst
+ * /sites/all/modules/my_module/templates/liftigniter-my-widget.mst.
  */
 function hook_liftigniter_templates_alter(&$locations) {
   // Add your module to the front of the list of template locations.
@@ -23,10 +25,13 @@ function hook_liftigniter_templates_alter(&$locations) {
  * Adjust meta data sent to LiftIgniter.
  *
  * @param array &$data
+ *   Metadata.
  * @param string $type
- * @param Entity $entity
+ *   Entity type.
+ * @param Drupal\Core\Entity\EntityInterface $entity
+ *   Entity object.
  */
-function hook_liftigniter_meta_alter(&$data, $type, $entity) {
+function hook_liftigniter_meta_alter(array &$data, $type, Drupal\Core\Entity\EntityInterface $entity) {
   if ($type === 'node') {
 
     // Simple swapping.
@@ -35,6 +40,7 @@ function hook_liftigniter_meta_alter(&$data, $type, $entity) {
         $data['my-property'] = 'thing';
         $data['bundle'] = 'My Fancy Type';
         break;
+
       case 'another_type':
         $data['my-property'] = 'that';
         break;
@@ -45,14 +51,14 @@ function hook_liftigniter_meta_alter(&$data, $type, $entity) {
 
 /**
  * Set your function as a post-JSON request processor.
+ *
+ * See liftigniter_preprocess_page().
  */
 function hook_preprocess_page(&$variables) {
   // Transform data after receiving from LiftIgniter.
-  $js_settings = [
-    'transformCallback' => 'Drupal.behaviors.my_module.liftIgniter',
-  ];
+  $js_settings = 'Drupal.behaviors.my_module.liftIgniter';
 
   // Add the settings to the page.
-  $variables['#attached']['drupalSettings']['liftIgniter'] = $js_settings;
+  $variables['#attached']['drupalSettings']['liftIgniter']['transformCallback'][] = $js_settings;
 
 }

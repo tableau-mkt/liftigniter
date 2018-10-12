@@ -88,7 +88,9 @@ function liftigniter_get_metadata() {
     $type = $entity->getEntityTypeID();
     // Add basic entity details.
     $metadata['type'] = $type;
-    $metadata['bundle'] = $entity->type->entity->label();
+    if (method_exists($entity, 'getType')) {
+      $metadata['bundle'] = $entity->getType();
+    }
     if ($entity instanceof NodeInterface) {
       $metadata['nid'] = $entity->id();
     }

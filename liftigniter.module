@@ -146,6 +146,13 @@ function liftigniter_block_view_block_content_alter(array &$build, BlockPluginIn
   // Update static variable.
   $widgets[] = $widget_id;
 
+  $settings = [
+    'max' => $custom_block->field_liftigniter_max_results->value,
+  ];
+
+  // Allow other modules to add custom widget options.
+  \Drupal::moduleHandler()->alter('liftigniter_widget_settings', $settings, $widget_id);
+
   // Place mustache template in the head.
   $template_output = [
     '#type' => 'html_tag',
@@ -167,7 +174,7 @@ function liftigniter_block_view_block_content_alter(array &$build, BlockPluginIn
     '#attached' => [
       'drupalSettings' => [
         'liftIgniter' => [
-          'widgets' => $widgets,
+          'widgets' => [$widget_id => $settings],
         ],
       ],
     ],

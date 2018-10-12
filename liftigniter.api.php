@@ -50,6 +50,21 @@ function hook_liftigniter_meta_alter(array &$data, $type, Drupal\Core\Entity\Ent
 }
 
 /**
+ * Adjust widget settings data sent to LiftIgniter.
+ *
+ * @param array &$data
+ *   Settings data.
+ * @param string $widget_id
+ *   Machine name of custom LiftIgniter block.
+ */
+function hook_liftigniter_settings_alter(array &$data, $widget_id) {
+  if ($widget_id === 'blogwidget') {
+    $settings['fields'] = ['title', 'bundle', 'language', 'url', 'thumbnail'];
+  }
+
+}
+
+/**
  * Set your function as a post-JSON request processor.
  *
  * See liftigniter_preprocess_page().

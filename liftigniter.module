@@ -213,8 +213,8 @@ function _liftigniter_get_template($widget_id) {
     $theme_path . 'templates/default-widget',
     $theme_path . $widget_id,
     $theme_path . 'default-widget',
-    drupal_get_path('module', 'liftigniter') . '/' . $widget_id,
-    drupal_get_path('module', 'liftigniter') . '/default-widget',
+    drupal_get_path('module', 'liftigniter') . '/templates/' . $widget_id,
+    drupal_get_path('module', 'liftigniter') . '/templates/default-widget',
   ];
   // Allow inserting candidate template locations.
   \Drupal::moduleHandler()->alter('liftigniter_templates', $locations);

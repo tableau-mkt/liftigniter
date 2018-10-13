@@ -11,6 +11,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\node\NodeInterface;
 
 define('LIFTIGNITER_LIST_PREFIX', 'li-recommendation-');
+define('LIFTIGNITER_TPL_PREFIX', 'li-recommendation-template-');
 define('LIFTIGNITER_TPL_EXT', '.mst');
 
 /**
@@ -160,7 +161,7 @@ function liftigniter_block_view_block_content_alter(array &$build, BlockPluginIn
     '#value' => "\r\n" . _liftigniter_get_template($widget_id),
     '#attributes' => [
       'type' => 'application/mustache',
-      'id' => LIFTIGNITER_LIST_PREFIX . $widget_id,
+      'id' => LIFTIGNITER_TPL_PREFIX . $widget_id,
     ],
   ];
   $build['#attached']['html_head'][] = [$template_output, 'liftigniter_template_' . $widget_id];

@@ -80,9 +80,9 @@
 
       // Cross widget details.
       if (widgets && config.fields) {
-        // $p('setRequestFields', config.fields);
+        $p('setRequestFields', config.fields);
         // Require that requested fields are present.
-        // $p('setRequestFieldsAON', true);
+        $p('setRequestFieldsAON', true);
       }
 
       // Use language options.

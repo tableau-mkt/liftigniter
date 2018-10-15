@@ -48,7 +48,7 @@ function liftigniter_preprocess_page(&$variables) {
       'fields' => array_merge($result['properties'], [
         'title',
         'thumbnail',
-        'type',
+        // 'type',
         'bundle',
       ]),
     ];

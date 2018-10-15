@@ -51,20 +51,20 @@
           widget: key,
           opts: options,
           callback: function(responseData) {
-            var template = $('#' + listIdPrefix + 'template-' + key).html(),
-                $element = $('div#' + listIdPrefix + key);
+            var template = document.querySelector('#' + listIdPrefix + 'template-' + key).innerHTML,
+                element = $('div#' + listIdPrefix + key);
 
             // Items to work with.
-            if ($element.length && responseData.items && responseData.items.length) {
+            if (element.length && responseData.items && responseData.items.length) {
               // Perform transformations.
               for (var t in configs.transformCallbacks) {
                 configs.transformCallbacks[t](responseData, key);
               }
 
               // Render the data.
-              $element.css('visibility','hidden');
-              $element.html($p('render', template, responseData));
-              $element.css('visibility','visible').hide().fadeIn('fast');
+              element.css('visibility','hidden');
+              element.html($p('render', template, responseData));
+              element.css('visibility','visible').hide().fadeIn('fast');
 
               // Add standard tracking. Helps improve quality.
               $p('track', {

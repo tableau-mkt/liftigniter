@@ -33,7 +33,7 @@
 
       // Add main transform callback, allow external.
       drupalSettings.liftIgniter.transformCallbacks.push(
-        // drupalSettings.liftIgniter.basicTransforms
+        Drupal.behaviors.liftIgniter.basicTransforms
       );
 
       /**

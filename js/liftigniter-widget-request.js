@@ -33,7 +33,7 @@
 
       // Add main transform callback, allow external.
       drupalSettings.liftIgniter.transformCallbacks.push(
-        drupalSettings.liftIgniter.basicTransforms
+        // drupalSettings.liftIgniter.basicTransforms
       );
 
       /**
@@ -51,7 +51,7 @@
           widget: key,
           opts: options,
           callback: function(responseData) {
-            var template = $('script#' + listIdPrefix + key).html(),
+            var template = $('#' + listIdPrefix + 'template-' + key).html(),
                 $element = $('div#' + listIdPrefix + key);
 
             // Items to work with.
@@ -80,9 +80,9 @@
 
       // Cross widget details.
       if (widgets && config.fields) {
-        $p('setRequestFields', config.fields);
+        // $p('setRequestFields', config.fields);
         // Require that requested fields are present.
-        $p('setRequestFieldsAON', true);
+        // $p('setRequestFieldsAON', true);
       }
 
       // Use language options.

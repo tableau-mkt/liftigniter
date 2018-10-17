@@ -9,15 +9,14 @@
 /* jshint loopfunc:true, forin:false */
 /* globals $p */
 
-(function($, Drupal) {
-  var listIdPrefix = 'li-recommendation-',
-      blockIdPrefix = 'block-liftigniter-widget-';
+(function($, Drupal, drupalSettings) {
+  var listIdPrefix = 'li-recommendation-';
 
   /**
    * Page load behavior.
    */
   Drupal.behaviors.liftIgniter = {
-    attach: function liftIgniter(context, settings) {
+    attach: function liftIgniter(context) {
       // Ajax protection.
       if (context !== document) {
         return;
@@ -28,8 +27,7 @@
         langData = (drupalSettings.dataLayer) ? drupalSettings.dataLayer.languages : {},
         defaultLang = (drupalSettings.dataLayer) ? drupalSettings.dataLayer.defaultLang : false,
         langPrefix = drupalSettings.path.pathPrefix.match(/^\w+-\w+\/$/),
-        options = {},
-        fetched;
+        options = {};
 
       // Add main transform callback, allow external.
       drupalSettings.liftIgniter.transformCallbacks.push(
@@ -119,18 +117,8 @@
         }
       }
 
-      // Execute all the registered widgets, possible scroll delay.
-      if (typeof $.fn.waypoint !== 'undefined' && config.useWaypoints) {
-        $('#' + blockIdPrefix + widgetKey).waypoint(function() {
-          if (!fetched) {
-            $p('fetch');
-            fetched = true;
-          }
-        }, {offset: '100%', triggerOnce: true});
-      }
-      else {
-        $p('fetch');
-      }
+      // Fetch all the registered widgets once.
+      $p('fetch');
 
     },
 
@@ -153,7 +141,7 @@
      * @param {object} data
      * @return {object}
      */
-    basicTransforms: function(data, key) {
+    basicTransforms: function(data) {
       // Force current protocol.
       if (drupalSettings.liftIgniter.forceSameProtocol) {
         for (var i in data.items) {
@@ -166,4 +154,4 @@
 
   };
 
-})(jQuery, Drupal);
+}(jQuery, Drupal, drupalSettings));

@@ -114,22 +114,24 @@
             // Register widget request and render results.
             widgetRequestRender(widgetKey, widget, options);
 
-            // Execute all the registered widgets, possible scroll delay.
-            if (typeof $.fn.waypoint !== 'undefined' && config.useWaypoints) {
-              $('#' + blockIdPrefix + widgetKey).waypoint(function() {
-                if (!fetched) {
-                  $p('fetch');
-                  fetched = true;
-                }
-              }, {offset: '100%', triggerOnce: true});
-            }
-            else {
-              $p('fetch');
-            }
           })(i);
 
         }
       }
+
+      // Execute all the registered widgets, possible scroll delay.
+      if (typeof $.fn.waypoint !== 'undefined' && config.useWaypoints) {
+        $('#' + blockIdPrefix + widgetKey).waypoint(function() {
+          if (!fetched) {
+            $p('fetch');
+            fetched = true;
+          }
+        }, {offset: '100%', triggerOnce: true});
+      }
+      else {
+        $p('fetch');
+      }
+
     },
 
     /**

@@ -9,7 +9,7 @@
 /* jshint loopfunc:true, forin:false */
 /* globals $p */
 
-(function($, Drupal, drupalSettings) {
+(function ($, Drupal, drupalSettings) {
   var listIdPrefix = 'li-recommendation-';
 
   /**

@@ -9,7 +9,7 @@
 /* jshint loopfunc:true, forin:false */
 /* globals $p */
 
-(function(drupalSettings) {
+(function (drupalSettings) {
 
   if (typeof $igniter_var === 'undefined') {
     // Ensures that our client code is updated.

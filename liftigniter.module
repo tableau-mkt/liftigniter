@@ -168,7 +168,6 @@ function liftigniter_block_view_block_content_alter(array &$build, BlockPluginIn
 
   // Override prerender to customize block render array for DOM placeholder and
   // inject global settings.
-  $build['#configuration']['label'] = t('Recommended');
   $build['#pre_render'] = [];
   $build['content'] = [
     '#markup' => '<div id="' . LIFTIGNITER_LIST_PREFIX . $widget_id . '"></div>',
